@@ -1,0 +1,34 @@
+especie,refugio,alimentacion,modelar,complejo,notas
+Rhinolophus ferrumequinum,Cavernicola,Forestal,TRUE,,CF unica 80-82kHz
+Rhinolophus hipposideros,Cavernicola,Forestal,TRUE,,CF unica 105-112kHz
+Rhinolophus euryale,Cavernicola,Forestal,TRUE,,Solapamiento R.mehelyi
+Rhinolophus mehelyi,Cavernicola,Forestal,TRUE,,Solapamiento R.euryale
+Miniopterus schreibersii,Cavernicola,Generalista,TRUE,,Colonias masivas
+Myotis myotis,Cavernicola,Forestal,TRUE,Myotis_grande,FM identica M.blythii
+Myotis blythii,Cavernicola,Pastizal,TRUE,Myotis_grande,FM identica M.myotis
+Myotis emarginatus,Cavernicola,Mosaico,TRUE,,Escotadura diagnostica
+Myotis escalerai,Cavernicola,Forestal,TRUE,Myotis_nattereri,Endemica. Similar M.crypticus
+Myotis crypticus,Cavernicola,Forestal,TRUE,Myotis_nattereri,Similar M.escalerai
+Myotis daubentonii,Fisuricola,Ripario,TRUE,,Patas grandes. Agua
+Myotis capaccinii,Cavernicola,Ripario,TRUE,,Cuevas cerca agua
+Myotis bechsteinii,Arboricola,Forestal,TRUE,,FM indetectable
+Myotis mystacinus,Fisuricola,Forestal,TRUE,Myotis_pequeno,Complejo 3 especies
+Myotis alcathoe,Arboricola,Forestal,TRUE,Myotis_pequeno,Indistinguible mystacinus
+Nyctalus leisleri,Arboricola,Forestal,TRUE,,Separable de noctula
+Nyctalus noctula,Arboricola,Forestal,TRUE,Nyctalus_spp,Solapamiento lasiopterus
+Nyctalus lasiopterus,Arboricola,Forestal,TRUE,Nyctalus_spp,Muy rara. Mayor europeo
+Barbastella barbastellus,Arboricola,Forestal,TRUE,,Dehesas. Sotobosque
+Plecotus auritus,Arboricola,Forestal,TRUE,Plecotus_spp,FM indetectable
+Plecotus austriacus,Antropofilo,Mosaico,TRUE,Plecotus_spp,Mas antropofila
+Plecotus macrobullaris,Arboricola,Forestal,TRUE,Plecotus_spp,Montanosa
+Plecotus teneriffae,Arboricola,Forestal,FALSE,,SOLO 15 cuadriculas
+Pipistrellus pipistrellus,Antropofilo,Generalista,TRUE,,Muy comun
+Pipistrellus pygmaeus,Antropofilo,Ripario,TRUE,,Frecuencia mas alta genero
+Pipistrellus kuhlii,Antropofilo,Generalista,TRUE,,Termofila
+Pipistrellus nathusii,Arboricola,Ripario,TRUE,,Migradora. Rara
+Pipistrellus maderensis,Antropofilo,Generalista,FALSE,,Criptica. Solo genetica
+Eptesicus serotinus,Antropofilo,Generalista,TRUE,,Muy plastico
+Eptesicus isabellinus,Fisuricola,Generalista,TRUE,,Montana >800m
+Hypsugo savii,Fisuricola,Generalista,TRUE,,Termofila
+Tadarida teniotis,Rupicola,Aereo,TRUE,,AUDIBLE 10-14kHz
+Vespertilio murinus,Fisuricola,Generalista,TRUE,,Rara (Pirineos)

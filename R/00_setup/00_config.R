@@ -1,0 +1,425 @@
+# ==============================================================================
+# 00_config.R - CONFIGURACION CENTRALIZADA
+# ==============================================================================
+#
+# Archivo unico de configuracion para todo el pipeline de modelizacion
+# Atlas de Murcielagos de la Peninsula Iberica (SECEMU)
+#
+# TODAS las rutas y parametros se definen aqui.
+# Para modificar el comportamiento del pipeline, editar SOLO este archivo.
+#
+# AUTOR: Guillermo Fandos (gfandos@ucm.es) / UCM
+# ==============================================================================
+
+CONFIG <- list(
+
+  # ============================================================================
+  # RUTAS DE ARCHIVOS
+  # ============================================================================
+  # Todas las rutas son relativas a la raiz del proyecto.
+  # Se organizan en: datos de entrada (brutos), procesados (intermedios),
+  # metadatos (versionados) y salidas (JSONs, modelos, mapas).
+
+  paths = list(
+
+    # --- DATOS DE ENTRADA (brutos, NO en Git) ---
+    # Estos archivos son proporcionados por el grupo de trabajo y no se
+    # modifican durante el pipeline. Incluyen presencias, mallas UTM,
+    # variables ambientales (Excel SEO) y geologia (CSVs).
+
+    # Presencias originales: CSV con coordenadas UTM, especie, metodo
+    presencias_raw = "data/raw/presencias/_final_coords_UTM_editada_20250929.csv",
+
+    # Directorio de variables ambientales (resoluciones 10x10)
+    variables_dir = "data/raw/variables",
+
+    # Variables forestales derivadas de inventario forestal
+    variables_forestales = "data/raw/variables/variables_forestales_10x10.csv",
+
+    # Shapefiles de malla UTM 10x10 km
+    # Peninsula: UTM zona 30 (ETRS89)
+    # Baleares: UTM zona 31 (se reproyecta a zona 30 durante carga)
+    shapefile_peninsula = "data/raw/shapefiles/Malla10x10_clip.shp",
+    shapefile_baleares = "data/raw/shapefiles/Malla10x10_BAL_Clip_nueva.shp",
+
+    # Variables ambientales en Excel (proporcionadas por SEO)
+    # EC = Espana Continental, BAL = Baleares, CANA = Canarias (excluidas)
+    variables_excel_ec = "data/raw/variables/Variables_EC.xlsx",
+    variables_excel_bal = "data/raw/variables/Variables_BAL.xlsx",
+    variables_excel_cana = "data/raw/variables/Variables_CANA.xlsx",
+    # Diccionario de codigos de variables (nombres cortos -> descriptivos)
+    codigos_variables = "data/raw/variables/Codigos_variables.xlsx",
+
+    # Variables geologicas: Karst (proporciones) y litologia (colores/tipos)
+    karst_csv = "data/raw/variables/10x10_Karst_PIBAL.csv",
+    lito_csv = "data/raw/variables/10x10_lito_COLOR_PIBAL.csv",
+
+    # --- DATOS PROCESADOS (intermedios, NO en Git) ---
+    # Generados por la Fase 0 (preparacion de datos). Son los inputs
+    # para las fases de modelado.
+
+    # Fase 0a: Presencias estandarizadas y PA por metodo
+    presencias_std = "data/processed/presencias_std.rds",
+    pa_metodo = "data/processed/pa_metodo.rds",
+    muestras_metodo = "data/processed/muestras_metodo.rds",
+    muestras_metodo_wide = "data/processed/muestras_metodo_wide.rds",
+    tabla_cripticos = "data/processed/tabla_cripticos.rds",
+    resumen_muestreo = "data/processed/resumen_muestreo.rds",
+    candidatos_por_metodo = "data/processed/candidatos_por_metodo.rds",
+
+    # Fase 0b: Mallas UTM (sf objects)
+    malla_union = "data/processed/malla_union.rds",
+    malla_peninsula = "data/processed/malla_peninsula.rds",
+    malla_baleares = "data/processed/malla_baleares.rds",
+
+    # Fase 0c-0f: Predictores ambientales + geologicos
+    predictores_seo = "data/processed/predictores_SEO.rds",
+    geo_features = "data/processed/geo_features.rds",
+    predictores_seo_geo = "data/processed/predictores_SEO_GEO.rds",
+    predictores_seo_geo_sf = "data/processed/predictores_SEO_GEO_sf.rds",
+
+    # Fase 0g: PAxENV por metodo (listos para modelado)
+    # Formato ancho: cuadriculas x (sp_especie + variables)
+    modelado_ready_dir = "data/modelado_ready",
+    paxenv_all = "data/modelado_ready/PAxENV_por_metodo_all.rds",
+    paxenv_acustica = "data/modelado_ready/PAxENV_acustica.rds",
+    paxenv_captura = "data/modelado_ready/PAxENV_captura.rds",
+    paxenv_cuevas = "data/modelado_ready/PAxENV_cuevas.rds",
+    paxenv_otros = "data/modelado_ready/PAxENV_otros.rds",
+
+    # Compatibilidad con Fase 2+: formato ancho unificado (todos los metodos)
+    pa_data = "data/processed/PAxENV_all_metodos.rds",
+    esfuerzo = "data/processed/esfuerzo_por_metodo.rds",
+    grid_predictores = "data/processed/predictores_all.rds",
+
+    # --- METADATOS (versionados en Git) ---
+    # CSVs de clasificacion ecologica de especies y variables.
+    # especies_gremios: asigna cada especie a un gremio de refugio y alimentacion
+    # gremios_refugio/alimentacion: define variables prioritarias por categoria
+    especies_gremios = "data/metadata/especies_gremios.csv",
+    gremios_refugio = "data/metadata/gremios_refugio.csv",
+    gremios_alimentacion = "data/metadata/gremios_alimentacion.csv",
+    complejos_taxonomicos = "data/metadata/complejos_taxonomicos.csv",
+    diccionario_variables = "data/metadata/diccionario_variables.csv",
+
+    # --- VARIABLES SELECCIONADAS (JSONs por especie) ---
+    # Un JSON por especie con: variables finales, eliminadas, metricas, alertas
+    variables_json = "output/seleccion_variables/variables_json"
+  ),
+
+  # --- RUTAS DE SALIDA ---
+  # Directorios donde se guardan resultados de modelos, mapas, logs y chequeos
+  output = list(
+    base = "output/modelos",           # Modelos y predicciones por especie
+    seleccion = "output/seleccion_variables",  # JSONs y diagnosticos de seleccion
+    logs = "output/logs",              # Logs de ejecucion
+    checks = "output/checks",         # Chequeos de calidad (QA)
+    figs = "output/figs"              # Figuras y mapas finales
+  ),
+
+  # ============================================================================
+  # PARAMETROS DE MODELIZACION
+  # ============================================================================
+  # Parametros para cada fase del pipeline de modelado. Los valores por defecto
+  # son para produccion; se indican alternativas para pruebas rapidas.
+
+  # --- MODELO AMBIENTAL (GLM) ---
+  # GLM binomial con las variables seleccionadas en Fase 1.
+  # Se usa hold-out (train/test split) + bootstrap para estimar incertidumbre.
+  ambiental = list(
+    prop_train = 0.70,       # Proporcion de datos para entrenamiento (70/30 split)
+    n_bootstrap = 500,       # Iteraciones de bootstrap (produccion: 500; pruebas: 50)
+    min_presencias = 30,     # Minimo de presencias para ajustar un modelo
+    min_ausencias = 30,      # Minimo de ausencias para balanceo
+    seed = 123               # Semilla para reproducibilidad
+  ),
+
+  # --- MODELO ESPACIAL (GAM / GLM polinomico) ---
+  # Captura autocorrelacion espacial residual usando coordenadas como predictores.
+  # Se comparan 3 metodos (glm2, glm3, gam) y se selecciona por AICc.
+  espacial = list(
+    metodos = c("glm2", "glm3", "gam"),  # Metodos a comparar
+    k_gam = 30,             # Grados de libertad maximos para smooth terms en GAM
+    k_gam_adaptativo = TRUE, # TRUE: k = min(k_gam, floor(n_pres/4)); FALSE: k fijo
+    usar_residuos = FALSE,  # TRUE: modelar residuos del GLM ambiental (evita doble conteo
+                            #   ambiental en fuzzy); FALSE: modelar PA directa.
+                            #   Ver 03b_bis_espacial_residuos.R para justificacion cientifica.
+    n_bootstrap = 500,      # Iteraciones de bootstrap
+    seed = 123
+  ),
+
+  # --- INTERSECCION FUZZY ---
+  # Combina favorabilidad ambiental y espacial.
+  # "geometrica" = media geometrica (conservadora, penaliza valores bajos)
+  interseccion = list(
+    metodo = "geometrica",   # Opciones: "geometrica", "pmin", "compensatoria"
+    gamma = 0.5              # Parametro para metodo compensatorio
+  ),
+
+  # --- VALIDACION CRUZADA ---
+  # Evaluacion fuera de muestra con bloques espaciales (evita autocorrelacion
+  # entre train y test). Con n_rep > 1, se repite la particion con diferentes
+  # seeds para obtener estimaciones mas estables de AUC/TSS.
+  validacion = list(
+    k_folds = 5,             # Numero de folds
+    metodo_bloques = "kmeans",  # Metodo para crear bloques espaciales
+    n_rep = 10,              # Repeticiones de la CV (produccion: 10; pruebas: 1)
+    seed = 123
+  ),
+
+  # --- INCERTIDUMBRE ---
+  # Indice compuesto de incertidumbre basado en tres fuentes:
+  #   MESS: extrapolacion ambiental (cuadriculas fuera del rango de training)
+  #   Bootstrap: variabilidad de coeficientes del GLM
+  #   Esfuerzo: heterogeneidad del muestreo por metodo
+  incertidumbre = list(
+    usar_mess = TRUE,
+    usar_bootstrap = TRUE,
+    usar_esfuerzo = TRUE,
+    peso_mess = 0.33,        # Peso del componente MESS en indice final
+    peso_bootstrap = 0.33,   # Peso del componente bootstrap
+    peso_esfuerzo = 0.34,   # Peso del componente esfuerzo (los 3 deben sumar 1)
+    pesos_adaptativos = TRUE, # TRUE: calibrar pesos por especie segun varianza de cada componente
+    umbral_mess = -10,       # Umbral MESS para clasificar como extrapolacion
+    max_metodos = 4,         # Maximo de metodos de muestreo considerados
+    # Umbrales de factor_incert (por n_metodos de muestreo)
+    factor_incert_umbrales = c(
+      "0" = 1.0,   # No muestreada: maxima incertidumbre
+      "1" = 0.7,   # Un solo metodo: incertidumbre alta
+      "2" = 0.5,   # Dos metodos: incertidumbre media
+      "3" = 0.3    # Tres+ metodos: incertidumbre baja
+    )
+  ),
+
+  # ============================================================================
+  # SELECCION DE VARIABLES
+  # ============================================================================
+  # Parametros para el pipeline de 7 fases de seleccion (02b).
+  # Controlan umbrales de correlacion, multicolinealidad, ratio muestral,
+  # y validacion predictiva.
+
+  seleccion = list(
+    correlation_threshold = 0.8,  # Umbral de correlacion para select07 (Munoz & Real)
+    vif_threshold = 10,           # VIF maximo permitido (Dormann et al. 2013)
+    ratio_Np = 8,                 # Ratio minimo presencias/parametros (Harrell's rule)
+    min_gremio_final = 2,         # Minimo de variables de gremio en modelo final
+    min_presencias = 30,          # Minimo de presencias para modelizar
+    midsize_max_vars = 5,         # Max variables para modelo simple (30-59 presencias)
+    k_folds_validation = 5,       # Folds para validacion predictiva (fase 7)
+    run_validation = TRUE,        # Ejecutar fase 7 (puede desactivarse para rapidez)
+    stability_selection = TRUE,   # Ejecutar bootstrap de estabilidad para select07
+    n_boot_stability = 100        # Iteraciones de stability selection (produccion: 100)
+  ),
+
+  # ============================================================================
+  # VISUALIZACION
+  # ============================================================================
+  # Parametros para los mapas del atlas (Fase 7).
+
+  mapas = list(
+    crs_salida = 25830,      # ETRS89/UTM zona 30N (CRS de salida para mapas)
+    paleta_favorabilidad = "batlow",   # Paleta de color para favorabilidad
+    paleta_incertidumbre = "lajolla",  # Paleta de color para incertidumbre
+    dpi = 300,               # Resolucion de mapas exportados
+    ancho_cm = 20,           # Ancho del mapa en cm
+    alto_cm = 20,            # Alto del mapa en cm
+    n_breaks = 5             # Numero de cortes en la leyenda
+  ),
+
+  # ============================================================================
+  # ESPECIES Y CONTROL DE EJECUCION
+  # ============================================================================
+  # Controla que especies se procesan y que fases se ejecutan.
+
+  especies = list(
+    # NULL = procesar todas las disponibles en CSV de gremios
+    piloto = NULL,
+    # Ejemplo para prueba rapida (descomentar):
+    # piloto = c("Rhinolophus ferrumequinum", "Myotis myotis"),
+    # Especies a excluir explicitamente del pipeline
+    excluir = c()
+  ),
+
+  # Control de ejecucion: activa/desactiva fases individuales.
+  # force_rerun = TRUE recalcula especies ya procesadas.
+  control = list(
+    force_rerun = FALSE,
+    ejecutar = list(
+      preparacion_datos = FALSE,     # Fase 0: preparacion de datos brutos
+      seleccion_variables = FALSE,   # Fase 1: seleccion de variables (7 fases)
+      modelo_ambiental = TRUE,       # Fase 2: GLM + favorabilidad ambiental
+      modelo_espacial = TRUE,        # Fase 3: GAM/GLM espacial
+      interseccion = TRUE,           # Fase 4: interseccion fuzzy
+      validacion = FALSE,            # Fase 5: validacion cruzada espacial
+      incertidumbre = TRUE,          # Fase 6: indice de incertidumbre
+      mapas = TRUE,                  # Fase 7: mapas del atlas
+      qa_mapas = FALSE               # Subfase 0h: mapas de chequeo (QA)
+    ),
+    n_cores = 1,           # Numero de nucleos para paralelizacion
+    usar_parallel = FALSE  # Activar ejecucion paralela
+  ),
+
+  # ============================================================================
+  # LOGGING
+  # ============================================================================
+  # Nivel de detalle del log y destinos de salida.
+
+  logging = list(
+    nivel = "INFO",      # Niveles: "DEBUG", "INFO", "WARN", "ERROR"
+    archivo = TRUE,      # Guardar log en archivo (output/logs/)
+    consola = TRUE       # Imprimir log en consola
+  )
+)
+
+# ==============================================================================
+# VALIDACION DE CONFIGURACION
+# ==============================================================================
+# Verifica que la configuracion es consistente antes de ejecutar el pipeline.
+# Comprueba: existencia de archivos criticos, validez de parametros numericos,
+# y consistencia entre pesos. Se llama desde run_pipeline.R al inicio.
+
+validar_config <- function() {
+
+  errores <- c()
+
+  # --- Verificar archivos de metadatos (siempre necesarios) ---
+  archivos_metadata <- c(
+    CONFIG$paths$especies_gremios,
+    CONFIG$paths$gremios_refugio,
+    CONFIG$paths$gremios_alimentacion
+  )
+
+  for (ruta in archivos_metadata) {
+    if (!file.exists(ruta)) {
+      errores <- c(errores, sprintf("Archivo no encontrado: %s", ruta))
+    }
+  }
+
+  # --- Si preparacion_datos esta activa, verificar entradas brutas ---
+  if (isTRUE(CONFIG$control$ejecutar$preparacion_datos)) {
+    # Presencias
+    if (!file.exists(CONFIG$paths$presencias_raw)) {
+      errores <- c(errores, sprintf("Presencias no encontradas: %s", CONFIG$paths$presencias_raw))
+    }
+    # Shapefiles
+    if (!file.exists(CONFIG$paths$shapefile_peninsula)) {
+      errores <- c(errores, sprintf("Shapefile peninsula no encontrado: %s", CONFIG$paths$shapefile_peninsula))
+    }
+
+    # Archivos Excel de variables ambientales (necesarios para 01c)
+    archivos_excel <- c(
+      CONFIG$paths$variables_excel_ec,
+      CONFIG$paths$variables_excel_bal,
+      CONFIG$paths$codigos_variables
+    )
+    for (ruta in archivos_excel) {
+      if (!file.exists(ruta)) {
+        errores <- c(errores, sprintf("Excel de variables no encontrado: %s", ruta))
+      }
+    }
+
+    # CSVs de geologia (necesarios para 01e)
+    if (!file.exists(CONFIG$paths$karst_csv)) {
+      errores <- c(errores, sprintf("CSV de Karst no encontrado: %s", CONFIG$paths$karst_csv))
+    }
+    if (!file.exists(CONFIG$paths$lito_csv)) {
+      errores <- c(errores, sprintf("CSV de litologia no encontrado: %s", CONFIG$paths$lito_csv))
+    }
+  }
+
+  # --- Verificar parametros numericos de modelizacion ---
+  if (CONFIG$ambiental$prop_train <= 0 || CONFIG$ambiental$prop_train >= 1) {
+    errores <- c(errores, "prop_train debe estar entre 0 y 1")
+  }
+
+  if (CONFIG$validacion$k_folds < 2) {
+    errores <- c(errores, "k_folds debe ser >= 2")
+  }
+
+  # --- Verificar parametros de seleccion son numeros positivos ---
+  seleccion_params <- list(
+    correlation_threshold = CONFIG$seleccion$correlation_threshold,
+    vif_threshold = CONFIG$seleccion$vif_threshold,
+    ratio_Np = CONFIG$seleccion$ratio_Np,
+    min_gremio_final = CONFIG$seleccion$min_gremio_final,
+    min_presencias = CONFIG$seleccion$min_presencias,
+    midsize_max_vars = CONFIG$seleccion$midsize_max_vars,
+    k_folds_validation = CONFIG$seleccion$k_folds_validation
+  )
+  for (param_name in names(seleccion_params)) {
+    val <- seleccion_params[[param_name]]
+    if (!is.numeric(val) || length(val) != 1 || val <= 0) {
+      errores <- c(errores, sprintf("seleccion$%s debe ser un numero positivo (actual: %s)",
+                                    param_name, deparse(val)))
+    }
+  }
+
+  # Correlation threshold debe estar entre 0 y 1
+  if (is.numeric(CONFIG$seleccion$correlation_threshold) &&
+      (CONFIG$seleccion$correlation_threshold <= 0 || CONFIG$seleccion$correlation_threshold > 1)) {
+    errores <- c(errores, "seleccion$correlation_threshold debe estar entre 0 y 1")
+  }
+
+  # --- Verificar pesos de incertidumbre suman 1 ---
+  suma_pesos <- CONFIG$incertidumbre$peso_mess +
+    CONFIG$incertidumbre$peso_bootstrap +
+    CONFIG$incertidumbre$peso_esfuerzo
+
+  if (abs(suma_pesos - 1.0) > 0.01) {
+    errores <- c(errores, sprintf("Pesos de incertidumbre no suman 1: %.2f", suma_pesos))
+  }
+
+  # --- Reportar errores o confirmar ---
+  if (length(errores) > 0) {
+    cat("\nERRORES DE CONFIGURACION:\n")
+    for (err in errores) {
+      cat(sprintf("   - %s\n", err))
+    }
+    stop("Configuracion invalida")
+  }
+
+  cat("[OK] Configuracion validada correctamente\n")
+}
+
+# ==============================================================================
+# IMPRIMIR CONFIGURACION
+# ==============================================================================
+
+print_config <- function() {
+  cat("\n")
+  cat("================================================================================\n")
+  cat("  CONFIGURACION DEL PIPELINE - ATLAS MURCIELAGOS SECEMU\n")
+  cat("================================================================================\n\n")
+
+  cat("RUTAS:\n")
+  cat(sprintf("  - PA data: %s\n", CONFIG$paths$pa_data))
+  cat(sprintf("  - PAxENV dir: %s\n", CONFIG$paths$modelado_ready_dir))
+  cat(sprintf("  - Grid: %s\n", CONFIG$paths$grid_predictores))
+  cat(sprintf("  - Output: %s\n", CONFIG$output$base))
+
+  cat("\nMODELIZACION:\n")
+  cat(sprintf("  - Bootstrap: %d iteraciones\n", CONFIG$ambiental$n_bootstrap))
+  cat(sprintf("  - Hold-out: %.0f%% train / %.0f%% test\n",
+              CONFIG$ambiental$prop_train * 100,
+              (1 - CONFIG$ambiental$prop_train) * 100))
+  cat(sprintf("  - CV folds: %d (metodo: %s)\n",
+              CONFIG$validacion$k_folds,
+              CONFIG$validacion$metodo_bloques))
+
+  cat("\nFASES A EJECUTAR:\n")
+  fases <- CONFIG$control$ejecutar
+  for (fase in names(fases)) {
+    status <- if (fases[[fase]]) "[SI]" else "[NO]"
+    cat(sprintf("  %s %s\n", status, fase))
+  }
+
+  if (!is.null(CONFIG$especies$piloto)) {
+    cat(sprintf("\nESPECIES PILOTO: %d especies\n", length(CONFIG$especies$piloto)))
+  } else {
+    cat("\nESPECIES: Todas las disponibles\n")
+  }
+
+  cat("\n================================================================================\n\n")
+}
+
+message("[OK] Configuracion cargada: CONFIG")

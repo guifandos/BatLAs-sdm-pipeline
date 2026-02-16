@@ -1,0 +1,121 @@
+# ==============================================================================
+# .gitignore - Atlas de Murcielagos SECEMU
+# ==============================================================================
+# Solo se versionan: codigo R/, metadatos data/metadata/, docs/, tests/,
+# configuracion (renv.lock, .Rprofile), CITATION.cff, LICENSE, README.md
+
+# ==============================================================================
+# CARPETAS ANTIGUAS / OBSOLETAS (NO subir)
+# ==============================================================================
+# Pipeline viejo completo (~4.4 GB) y scripts draft originales
+atlas_murcielagos_pipeline_26112025/
+archivos_nuevos/
+
+# ==============================================================================
+# DATOS (NO subir - demasiado grandes / sensibles / reproducibles)
+# ==============================================================================
+
+# --- Datos brutos (proporcionados por el grupo de trabajo) ---
+data/raw/**/*.csv
+data/raw/**/*.rds
+data/raw/**/*.RData
+data/raw/**/*.gpkg
+data/raw/**/*.xlsx
+data/raw/**/*.xls
+# Shapefiles (todos sus componentes)
+data/raw/**/*.shp
+data/raw/**/*.dbf
+data/raw/**/*.prj
+data/raw/**/*.shx
+data/raw/**/*.cpg
+data/raw/**/*.sbn
+data/raw/**/*.sbx
+data/raw/**/*.qpj
+
+# --- Datos procesados (reproducibles desde raw) ---
+data/processed/
+!data/processed/.gitkeep
+
+# --- Datos listos para modelado (reproducibles desde processed) ---
+data/modelado_ready/
+!data/modelado_ready/.gitkeep
+
+# ==============================================================================
+# OUTPUTS DEL PIPELINE (reproducibles)
+# ==============================================================================
+output/modelos/
+output/logs/
+output/figs/
+output/seleccion_variables/variables_json/*.json
+output/seleccion_variables/diagnosticos/
+output/*.png
+output/*.pdf
+output/*.csv
+
+# ==============================================================================
+# RESULTADOS INTERMEDIOS
+# ==============================================================================
+resultados/
+
+# ==============================================================================
+# RENV (solo renv.lock y settings van al repo)
+# ==============================================================================
+renv/library/
+renv/local/
+renv/cellar/
+renv/staging/
+renv/sandbox/
+renv/python/
+renv/activate.R
+
+# ==============================================================================
+# R / RSTUDIO
+# ==============================================================================
+.Rhistory
+.Rdata
+.RData
+.Ruserdata
+.Rproj.user/
+*.Rproj
+
+# ==============================================================================
+# SISTEMA OPERATIVO
+# ==============================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# ==============================================================================
+# EDITORES / IDEs
+# ==============================================================================
+*.swp
+*.swo
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ==============================================================================
+# HERRAMIENTAS DE DESARROLLO
+# ==============================================================================
+.claude/
+
+# ==============================================================================
+# TEMPORALES / GENERADOS
+# ==============================================================================
+*.tmp
+*.bak
+*.log
+*.cache

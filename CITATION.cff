@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "Si utiliza este software, por favor cite como se indica a continuacion."
+type: software
+title: "Atlas de Distribucion de Murcielagos de la Peninsula Iberica"
+version: 1.0.0
+date-released: 2026-02-16
+authors:
+  - family-names: Fandos
+    given-names: Guillermo
+    email: gfandos@ucm.es
+    affiliation: Universidad Complutense de Madrid
+    orcid: ""
+  - family-names: Tena
+    given-names: Elena
+    affiliation: SECEMU
+keywords:
+  - bats
+  - species distribution models
+  - Iberian Peninsula
+  - favorability
+  - atlas
+  - chiroptera
+license: CC-BY-4.0
+repository-code: "https://github.com/gfandos/atlas-murcielagos-iberia"

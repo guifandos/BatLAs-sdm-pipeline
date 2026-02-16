@@ -1,0 +1,24 @@
+variable,tipo,unidad,fuente,descripcion
+Bio01,Climatica,C x 10,WorldClim,Temperatura media anual
+Bio05,Climatica,C x 10,WorldClim,Temperatura maxima del mes mas calido
+Bio06,Climatica,C x 10,WorldClim,Temperatura minima del mes mas frio
+Bio12,Climatica,mm,WorldClim,Precipitacion anual
+SRTM_Alt_mean,Topografica,m,SRTM,Altitud media de la cuadricula
+Slope_slope_mean,Topografica,grados,SRTM derivado,Pendiente media
+Karst_principal,Geologica,%,Mapa karst,Superficie de karst continuo carbonatado/evaporitico
+Karst_secundario,Geologica,%,Mapa karst,Superficie de karst discontinuo/mixto
+Karst_total,Geologica,%,Mapa karst,Superficie total de karst
+Lito_karsticas,Geologica,%,Mapa litologico,Rocas con cavidades (calizas y dolomias)
+Lito_siliciclasticas,Geologica,%,Mapa litologico,Rocas clasticas (areniscas y conglomerados)
+Lito_igneas,Geologica,%,Mapa litologico,Rocas igneas (granitos y vulcanitas)
+Lito_metamorficas,Geologica,%,Mapa litologico,Rocas metamorficas (gneises y esquistos)
+Lito_diversidad,Geologica,Shannon,Derivado,Diversidad litologica (indice Shannon)
+CLC_bosques,Cobertura,%,CORINE,Superficie de bosques (frondosas + coniferas + mixto + agroforestal)
+CLC_rupicola,Cobertura,%,CORINE,Superficie de habitats rupicolas (roquedo + minas)
+CLC_acuatico,Cobertura,%,CORINE,Superficie de ecosistemas acuaticos
+CLC_pastizal,Cobertura,%,CORINE,Superficie de pastizales y areas abiertas
+CLC_mosaico,Cobertura,%,CORINE,Superficie de mosaicos agroforestales
+CLC_cultivo_lenoso,Cobertura,%,CORINE,Superficie de cultivos lenosos mediterraneos
+CLC_urbano,Cobertura,%,CORINE,Superficie de areas urbanas
+CLC_cultivo_intensivo,Cobertura,%,CORINE,Superficie de cultivos intensivos
+CLC_perturbacion_costera,Cobertura,%,CORINE,Superficie de areas perturbadas y costeras

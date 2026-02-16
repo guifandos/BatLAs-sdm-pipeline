@@ -1,0 +1,6 @@
+categoria,variables_prioritarias,descripcion
+Cavernicola,"Karst_total,Karst_principal,Karst_secundario,Lito_karsticas,CLC_rupicola",Especies que usan cuevas y cavidades como refugio principal
+Arboricola,"CLC_bosques,CLC_mosaico,Lito_diversidad",Especies que usan huecos de arboles como refugio
+Antropofilo,"CLC_urbano,CLC_cultivo_lenoso",Especies que usan edificios y estructuras humanas
+Fisuricola,"CLC_rupicola,SRTM_Alt_mean,Slope_slope_mean",Especies que usan fisuras en roca
+Rupicola,"CLC_rupicola,SRTM_Alt_mean,Slope_slope_mean",Especies que usan roquedos y acantilados
