@@ -18,10 +18,11 @@ Pipeline reproducible que combina modelos ambientales (GLM) con modelos espacial
 8. [Resumen metodologico](#resumen-metodologico)
 9. [Quick start](#quick-start)
 10. [Estructura del repositorio](#estructura-del-repositorio)
-11. [Sistema de validacion de datos](#sistema-de-validacion-de-datos)
-12. [Optimizaciones implementadas](#optimizaciones-implementadas)
-13. [Requisitos](#requisitos)
-14. [Autores y citacion](#autores-y-citacion)
+11. [Tests](#tests)
+12. [Sistema de validacion de datos](#sistema-de-validacion-de-datos)
+13. [Optimizaciones implementadas](#optimizaciones-implementadas)
+14. [Requisitos](#requisitos)
+15. [Autores y citacion](#autores-y-citacion)
 
 ---
 
@@ -351,23 +352,78 @@ Paletas colorblind-safe: `batlow` (favorabilidad), `lajolla` (incertidumbre). CR
 
 ## Quick start
 
+### Opcion A: Vineta de inicio rapido (recomendado para la primera vez)
+
+El script `vignettes/00_inicio_rapido.R` automatiza todo el proceso de configuracion y ejecuta un ejemplo piloto con 2 especies:
+
 ```r
 # 1. Clonar repositorio
 # git clone https://github.com/gfandos/atlas-murcielagos-iberia.git
 
-# 2. Restaurar paquetes
-renv::restore()
+# 2. Abrir el proyecto en RStudio o cambiar al directorio raiz
+setwd("atlas-murcielagos-iberia")
 
 # 3. Colocar datos brutos en data/raw/ (ver tabla de datos de entrada)
 
-# 4. Configurar R/00_setup/00_config.R
+# 4. Ejecutar la vineta (~10-15 minutos)
+source("vignettes/00_inicio_rapido.R")
+```
+
+La vineta realiza automaticamente:
+
+1. Verifica el directorio de trabajo
+2. Instala y carga todos los paquetes requeridos
+3. Configura `renv` (crea `renv.lock` si no existe, o restaura si existe)
+4. Verifica que todos los archivos de entrada estan presentes
+5. Configura modo piloto (2 especies, 50 bootstrap, 2 rep CV)
+6. Ejecuta todas las fases (0-7) con datos reales
+7. Verifica los resultados y muestra metricas
+
+### Opcion B: Ejecucion directa
+
+```r
+# 1. Restaurar paquetes
+renv::restore()
+
+# 2. Colocar datos brutos en data/raw/ (ver tabla de datos de entrada)
+
+# 3. Configurar R/00_setup/00_config.R
 #    - Verificar rutas
 #    - Seleccionar fases a ejecutar (CONFIG$control$ejecutar)
 #    - Para prueba rapida: CONFIG$especies$piloto = c("Rhinolophus ferrumequinum")
 
-# 5. Ejecutar
+# 4. Ejecutar
 source("R/run_pipeline.R")
 ```
+
+### Opcion C: Solo verificar que el codigo funciona (sin datos brutos)
+
+```r
+# Ejecutar tests con datos simulados (~1 minuto)
+source("tests/test_pipeline.R")
+```
+
+Los tests validan configuracion, utilidades core, CORINE, gremios, GLM, seleccion de variables, fuzzy, logging, y consistencia de metadatos.
+
+### Pasar de piloto a produccion
+
+Tras completar la vineta con exito, para lanzar el pipeline completo:
+
+```r
+# En R/00_setup/00_config.R, cambiar:
+CONFIG$especies$piloto <- NULL           # Procesa todas las especies
+CONFIG$ambiental$n_bootstrap <- 500      # Bootstrap completo
+CONFIG$espacial$n_bootstrap <- 500
+CONFIG$validacion$n_rep <- 10            # 10 repeticiones de CV
+CONFIG$control$force_rerun <- FALSE      # Respetar checkpoints
+
+# Ejecutar
+source("R/run_pipeline.R")
+```
+
+Tiempo estimado para el pipeline completo: **3-6 horas** (~25 especies, 500 bootstrap).
+
+### Modificar la ecologia sin tocar codigo
 
 Para modificar la clasificacion ecologica de una especie, editar `data/metadata/especies_gremios.csv`. Para anadir un complejo criptico, editar `data/metadata/complejos_taxonomicos.csv`. No es necesario tocar codigo R.
 
@@ -421,12 +477,42 @@ atlas-murcielagos-iberia/
 |   |-- figs/                             # Mapas y figuras
 |   +-- logs/                             # Logs de ejecucion
 |
+|-- vignettes/
+|   +-- 00_inicio_rapido.R               # Vineta: setup + ejemplo piloto (2 especies)
+|
 |-- docs/                                 # Documentacion detallada por fase
-|-- tests/                                # Tests reproducibles
+|-- tests/
+|   +-- test_pipeline.R                  # 40+ tests con datos simulados
 |-- renv/                                 # Reproducibilidad de paquetes
+|-- AUDIT_PRE_WORKFLOW.md                 # Auditoria pre-workflow (issues y checklist)
 |-- CITATION.cff                          # Formato de citacion
 +-- LICENSE                               # CC-BY 4.0
 ```
+
+---
+
+## Tests
+
+El pipeline incluye una suite de 40+ tests automatizados en `tests/test_pipeline.R` que verifican el correcto funcionamiento sin necesidad de datos brutos:
+
+```r
+source("tests/test_pipeline.R")
+```
+
+| Grupo | Tests | Que verifica |
+|-------|-------|-------------|
+| Configuracion | 5 | CONFIG carga, paths, pesos suman 1, `validar_config()` |
+| Funciones core | 8 | `norm_id()`, `favorabilidad()`, `favorabilidad_inv()`, `compute_metrics()`, `impute_median()` |
+| CORINE | 2 | Agrupacion 44 -> 9 clases, nombres correctos |
+| Gremios | 7 | Carga CSVs, variables por especie, complejos, `detect_variable_type()` |
+| Anotacion | 2 | `annotate_variables_by_guild()` con/sin especie en metadata |
+| GLM | 1 | GLM + favorabilidad end-to-end con datos simulados |
+| Seleccion | 3 | `select07_core()`, `fase1_preseleccion_gremio()`, `fase2_limpieza_basica()` |
+| Fuzzy | 3 | Operadores geometrico, pmin, rango [0,1] |
+| Logging | 3 | `init_log()`, `log_event()`, `log_summary()` |
+| Metadatos | 4 | Consistencia refugio/alimentacion, complejos cripticos |
+
+Los tests generan datos simulados (500 cuadriculas, 2 especies) y limpian automaticamente al finalizar.
 
 ---
 
@@ -514,7 +600,15 @@ Cuando un join produce 0 coincidencias (IDs incompatibles), el pipeline se detie
 
 ## Documentacion adicional
 
-Documentacion detallada por fase disponible en `docs/`:
+### Vineta de inicio
+
+- [`vignettes/00_inicio_rapido.R`](vignettes/00_inicio_rapido.R) — **Empezar aqui**: setup automatizado + ejemplo piloto con 2 especies
+
+### Auditoria
+
+- [`AUDIT_PRE_WORKFLOW.md`](AUDIT_PRE_WORKFLOW.md) — Auditoria pre-workflow con checklist de acciones por prioridad
+
+### Documentacion por fase
 
 - [`00_FLUJO_COMPLETO.md`](docs/00_FLUJO_COMPLETO.md) — Diagrama de dependencias y tiempos estimados
 - [`01_PREPARACION_DATOS.md`](docs/01_PREPARACION_DATOS.md) — Detalles de carga y transformacion
