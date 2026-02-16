@@ -362,6 +362,16 @@ presencias <- presencias %>%
     )
   )
 
+# Validar que match() no introdujo NAs silenciosos
+n_na_modelo <- sum(is.na(presencias$especie_modelo))
+if (n_na_modelo > 0) {
+  warning(sprintf("ATENCION: %d registros con especie_modelo=NA tras aplicar cripticos. Revisar coincidencia de nombres.", n_na_modelo))
+  # Mostrar nombres que no coincidieron
+  problematicos <- presencias %>% filter(is.na(especie_modelo)) %>%
+    pull(especie_definitiva) %>% unique()
+  cat(sprintf("  Especies problematicas: %s\n", paste(head(problematicos, 10), collapse = ", ")))
+}
+
 n_complejos_aplicados <- sum(presencias$especie_definitiva != presencias$especie_modelo,
                               na.rm = TRUE)
 cat("Registros reasignados a complejos cripticos:", n_complejos_aplicados, "\n")

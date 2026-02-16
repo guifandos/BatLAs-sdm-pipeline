@@ -513,15 +513,17 @@ annotate_variables_by_guild <- function(especie, varnames, especies_gremios) {
   if (nrow(sp_info) == 0) {
     warning(sprintf("Especie '%s' no encontrada", especie))
     # Sin informacion de gremio: clasificar por tipo pero sin prioridades de gremio
+    tipos <- detect_variable_types(varnames)
+    es_clima <- tipos == "climatica"
     return(tibble(
       variable = varnames,
-      tipo_base = detect_variable_types(varnames),
-      es_climatica = tipo_base == "climatica",
+      tipo_base = tipos,
+      es_climatica = es_clima,
       es_gremio = FALSE,
       es_nucleo = FALSE,
       es_complementaria = FALSE,
-      prioridad = ifelse(es_climatica, 3L, 1L),
-      peso = ifelse(es_climatica, 3.0, 1.0)
+      prioridad = ifelse(es_clima, 3L, 1L),
+      peso = ifelse(es_clima, 3.0, 1.0)
     ))
   }
 
