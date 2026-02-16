@@ -30,6 +30,7 @@ paquetes_requeridos <- c(
 
   # --- Lectura de datos ---
   "readxl",        # Lectura de archivos Excel (.xlsx)
+  "broom",         # Extraccion de coeficientes de modelos (tidy, glance)
 
   # --- Visualizacion ---
   "scico",         # Paletas colorblind-friendly (batlow, lajolla, vik)

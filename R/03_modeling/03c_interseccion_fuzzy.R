@@ -66,7 +66,13 @@ for (sp in especies) {
 
   # Asegurar dimensiones compatibles
   n_pred <- nrow(boot_amb)
-  n_boot <- min(ncol(boot_amb), ncol(boot_esp))
+  n_boot_amb <- ncol(boot_amb)
+  n_boot_esp <- ncol(boot_esp)
+  n_boot <- min(n_boot_amb, n_boot_esp)
+  if (n_boot_amb != n_boot_esp) {
+    cat(sprintf("  [AVISO] Matrices bootstrap con dimensiones distintas: ambiental=%d, espacial=%d. Truncando a %d.\n",
+                n_boot_amb, n_boot_esp, n_boot))
+  }
   boot_amb <- boot_amb[, 1:n_boot]
   boot_esp <- boot_esp[, 1:n_boot]
 

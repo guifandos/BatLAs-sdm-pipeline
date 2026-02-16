@@ -86,9 +86,16 @@ modelar_ambiental_sp <- function(sp, datos_pa, grid_data) {
     return(list(status = "skip", sp = sp))
   }
 
-  # Hold-out split
+  # Hold-out split estratificado (mantiene proporcion presencias/ausencias)
   set.seed(CONFIG$ambiental$seed)
-  idx_train <- sample(1:nrow(datos_sp), size = floor(CONFIG$ambiental$prop_train * nrow(datos_sp)))
+  idx_pres <- which(datos_sp$PA == 1)
+  idx_aus <- which(datos_sp$PA == 0)
+  n_train_pres <- floor(CONFIG$ambiental$prop_train * length(idx_pres))
+  n_train_aus <- floor(CONFIG$ambiental$prop_train * length(idx_aus))
+  idx_train <- c(
+    sample(idx_pres, size = n_train_pres),
+    sample(idx_aus, size = n_train_aus)
+  )
   datos_train <- datos_sp[idx_train, ]
   datos_test <- datos_sp[-idx_train, ]
 

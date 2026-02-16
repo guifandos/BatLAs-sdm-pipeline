@@ -626,9 +626,11 @@ run_pipeline_especie <- function(df, especie, especies_gremios,
   # Fase 5: Control del ratio N/p (Harrell) + salvaguarda 2
   f5 <- fase5_control_muestral(f4$data, response_col, f4$var_info)
 
-  # Recopilar todas las variables eliminadas en fases 2-4 para posible rescate
+  # Recopilar variables con metadata (AIC, tipo) de fases 2-4 que ya no estan
+  # en el modelo tras f5. Se usan como pool de rescate en la salvaguarda 3 (f6).
   vars_eliminadas_todas <- bind_rows(f2$var_info, f3$var_info, f4$var_info) %>%
-    filter(!variable %in% f5$var_info$variable)
+    filter(!variable %in% f5$var_info$variable) %>%
+    distinct(variable, .keep_all = TRUE)
   # Fase 6: Validacion ecologica + salvaguarda 3
   f6 <- fase6_control_ecologico(f5$data, response_col, f5$var_info, vars_eliminadas_todas)
 

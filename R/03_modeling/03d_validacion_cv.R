@@ -61,8 +61,9 @@ for (sp in especies) {
     drop_na()
 
   n_pres <- sum(datos_sp$PA == 1)
-  if (n_pres < 10) {
-    log_event("validacion", sp, "WARN", "<10 presencias")
+  if (n_pres < CONFIG$ambiental$min_presencias) {
+    log_event("validacion", sp, "WARN",
+              sprintf("<%d presencias (n_pres=%d)", CONFIG$ambiental$min_presencias, n_pres))
     next
   }
 

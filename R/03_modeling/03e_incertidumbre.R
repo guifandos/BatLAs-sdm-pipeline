@@ -116,7 +116,14 @@ for (sp in especies) {
 
   # 2. Bootstrap width
   W_boot <- pred_int$W_fuzzy
-  W_norm <- W_boot / max(W_boot, na.rm = TRUE)
+  max_W <- max(W_boot, na.rm = TRUE)
+  if (is.finite(max_W) && max_W > 0) {
+    W_norm <- W_boot / max_W
+  } else {
+    W_norm <- rep(0, length(W_boot))
+    log_event("incertidumbre", sp, "WARN",
+              "W_boot max es 0 o no finito; W_norm fijado a 0")
+  }
   W_norm[is.na(W_norm)] <- 1
 
   # 3. Esfuerzo

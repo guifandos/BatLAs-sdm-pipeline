@@ -33,9 +33,6 @@ CONFIG <- list(
     # Directorio de variables ambientales (resoluciones 10x10)
     variables_dir = "data/raw/variables",
 
-    # Variables forestales derivadas de inventario forestal
-    variables_forestales = "data/raw/variables/variables_forestales_10x10.csv",
-
     # Shapefiles de malla UTM 10x10 km
     # Peninsula: UTM zona 30 (ETRS89)
     # Baleares: UTM zona 31 (se reproyecta a zona 30 durante carga)

@@ -143,10 +143,11 @@ for (met in metodos) {
 
   cat(sprintf("  Especies: %d\n", length(especies_met)))
 
-  # Construir tabla PA wide: filas = cuadriculas, columnas = especies (0/1)
+  # Deduplicar antes de pivot_wider para evitar conflictos
   pa_wide <- pa_metodo %>%
     filter(metodo == met) %>%
     select(cuadricula_utm_10x10, especie_modelo, presencia) %>%
+    distinct(cuadricula_utm_10x10, especie_modelo, .keep_all = TRUE) %>%
     pivot_wider(names_from = especie_modelo, values_from = presencia,
                 values_fill = 0L)
 

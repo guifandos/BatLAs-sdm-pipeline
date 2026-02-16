@@ -47,6 +47,34 @@ source("R/utils/utils_logging.R")
 # numericos son validos, pesos suman 1, etc. Detiene el pipeline si hay errores.
 validar_config()
 
+# --- PRE-FLIGHT: verificar datos procesados si fases 0-1 desactivadas ---
+# Si las fases de preparacion/seleccion estan desactivadas, los datos intermedios
+# deben existir ya. Sin ellos, las fases 2-7 fallaran silenciosamente.
+if (!isTRUE(CONFIG$control$ejecutar$preparacion_datos)) {
+  archivos_requeridos_fase0 <- c(CONFIG$paths$pa_data, CONFIG$paths$esfuerzo)
+  faltantes <- archivos_requeridos_fase0[!file.exists(archivos_requeridos_fase0)]
+  if (length(faltantes) > 0) {
+    cat("\n[AVISO PRE-FLIGHT] Fase 0 desactivada pero faltan datos procesados:\n")
+    for (f in faltantes) cat(sprintf("  - %s\n", f))
+    cat("  Active preparacion_datos=TRUE en CONFIG o proporcione estos archivos.\n\n")
+    if (isTRUE(CONFIG$control$ejecutar$modelo_ambiental) ||
+        isTRUE(CONFIG$control$ejecutar$modelo_espacial)) {
+      stop("Pre-flight fallido: datos procesados requeridos para fases 2+ no encontrados.")
+    }
+  }
+}
+
+if (!isTRUE(CONFIG$control$ejecutar$seleccion_variables) &&
+    isTRUE(CONFIG$control$ejecutar$modelo_ambiental)) {
+  json_dir <- CONFIG$paths$variables_json
+  if (!dir.exists(json_dir) || length(list.files(json_dir, pattern = "\\.json$")) == 0) {
+    cat("\n[AVISO PRE-FLIGHT] Fase 1 desactivada pero no hay JSONs de variables en:\n")
+    cat(sprintf("  %s\n", json_dir))
+    cat("  Active seleccion_variables=TRUE o ejecute la Fase 1 previamente.\n\n")
+    stop("Pre-flight fallido: JSONs de variables requeridos para Fase 2+ no encontrados.")
+  }
+}
+
 # Inicializar log centralizado
 init_log()
 log_event("pipeline", "", "INFO", "Pipeline iniciado")

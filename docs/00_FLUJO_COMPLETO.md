@@ -4,12 +4,14 @@
 
 ```
 DATOS BRUTOS                    PREPARACION (Fase 0)
-  presencias.csv    ---->  01a: Cargar presencias
-  10x10_*.csv       ---->  01b: Cargar variables
-                           01c: Agrupar CORINE (9 grupos ecologicos)
-                           01d: Procesar geologia (Karst + Litologia + PCA)
-                           01e: Crear matriz PA (especie x cuadricula)
-                           01f: Separar por metodo
+  presencias.csv    ---->  01a: Preparar PA por metodo + complejos cripticos
+  shapefiles/       ---->  01b: Cargar malla UTM (Peninsula + Baleares)
+  Variables_*.xlsx  ---->  01c: Cargar variables ambientales desde Excel
+  CORINE            ---->  01d: Agrupar CORINE (44 clases -> 9 grupos ecologicos)
+  Karst/Lito CSVs   --->  01e: Procesar geologia (Karst + Litologia + PCA)
+                           01f: Unir predictores (SEO + GEO) + z-score
+                           01g: Crear PAxENV por metodo + esfuerzo
+                           01h: Mapas de chequeo QA (opcional)
                                     |
                                     v
                            PAxENV_all_metodos.rds
