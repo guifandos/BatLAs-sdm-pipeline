@@ -501,8 +501,10 @@ Cuando un join produce 0 coincidencias (IDs incompatibles), el pipeline se detie
 
 ## Autores y citacion
 
-- **Guillermo Fandos** — Departamento de Biodiversidad, ecología y evolución, Universidad Complutense de Madrid — gfandos@ucm.es (desarrollo del pipeline y coordinacion cientifica)
-- **Elena Tena** — SECEMU (asesoramiento)
+- **Guillermo Fandos** — Departamento de Biodiversidad, Ecologia y Evolucion, Universidad Complutense de Madrid — gfandos@ucm.es (desarrollo del pipeline y coordinacion cientifica)
+- **Elena Tena** — SECEMU (coordinacion cientifica y datos)
+- **Silvia Maria Cabezas Leon** — SECEMU (coordinacion cientifica y datos)
+- **Comision SECEMU** (asesoramiento cientifico)
 
 **Licencia**: CC-BY 4.0
 

@@ -13,6 +13,11 @@ authors:
   - family-names: Tena
     given-names: Elena
     affiliation: SECEMU
+  - family-names: Cabezas Leon
+    given-names: Silvia Maria
+    affiliation: SECEMU
+  - name: Comision SECEMU
+    affiliation: SECEMU
 keywords:
   - bats
   - species distribution models
@@ -21,4 +26,4 @@ keywords:
   - atlas
   - chiroptera
 license: CC-BY-4.0
-repository-code: "https://github.com/gfandos/atlas-murcielagos-iberia"
+repository-code: "https://github.com/guifandos/atlas-murcielagos-iberia"
