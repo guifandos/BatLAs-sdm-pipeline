@@ -1,6 +1,6 @@
 categoria,variables_prioritarias,descripcion
 Forestal,"CLC_bosques,CLC_mosaico,Lito_diversidad",Caza en ambientes forestales cerrados
-Ripario,"CLC_acuatico,LamArt_HISTO_1,LamArt_HISTO_2",Caza sobre o cerca de cuerpos de agua
+Ripario,"CLC_acuatico,Bio12,Slope_slope_mean",Caza sobre o cerca de cuerpos de agua
 Generalista,"CLC_mosaico,CLC_bosques,CLC_pastizal",Caza en multiples habitats sin especializacion
 Mosaico,"CLC_cultivo_lenoso,CLC_mosaico,CLC_cultivo_intensivo",Caza en paisajes agricolas heterogeneos
 Pastizal,"CLC_pastizal,CLC_cultivo_intensivo",Caza en areas abiertas y pastizales
