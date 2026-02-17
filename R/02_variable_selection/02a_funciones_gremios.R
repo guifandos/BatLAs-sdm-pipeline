@@ -364,7 +364,12 @@ is_variable_category <- function(varname, category) {
 #' categoria de refugio. Se combinan los vectores hardcoded con los
 #' patrones para maxima cobertura.
 assign_priorities_refugio <- function(cat_refugio) {
-  switch(cat_refugio,
+
+  # Categorias validas de refugio (deben coincidir con gremios_refugio.csv)
+  categorias_validas <- c("Cavernicola", "Arboricola", "Antropofilo",
+                          "Fisuricola", "Rupicola")
+
+  resultado <- switch(cat_refugio,
 
     # CAVERNICOLA: Rhinolophus spp., Miniopterus, Myotis myotis, M. blythii, etc.
     # Necesitan cavidades (cuevas, minas, tuneles) para colonias de cria e
@@ -413,10 +418,17 @@ assign_priorities_refugio <- function(cat_refugio) {
       complementaria = c(forest_vars, water_vars)
     ),
 
-    # DEFAULT: especie sin gremio de refugio asignado
-    # Se asignan topografia y paisaje como complementarias genericas
-    list(nucleo = character(0), complementaria = c(topo_vars, landscape_vars))
+    # DEFAULT: categoria no reconocida -> FAIL FAST
+    NULL
   )
+
+  if (is.null(resultado)) {
+    stop(sprintf(
+      "Categoria de refugio desconocida: '%s'.\n  Categorias validas: %s.\n  Anadir la nueva categoria a assign_priorities_refugio() en 02a_funciones_gremios.R\n  y a gremios_refugio.csv.",
+      cat_refugio, paste(categorias_validas, collapse = ", ")))
+  }
+
+  resultado
 }
 
 #' Asignar prioridades segun gremio (eje alimentacion)
@@ -424,7 +436,12 @@ assign_priorities_refugio <- function(cat_refugio) {
 #' Devuelve listas de variables "nucleo" y "complementaria" para cada
 #' estrategia de forrajeo.
 assign_priorities_alimentacion <- function(cat_alim) {
-  switch(cat_alim,
+
+  # Categorias validas de alimentacion (deben coincidir con gremios_alimentacion.csv)
+  categorias_validas <- c("Forestal", "Ripario", "Generalista",
+                          "Mosaico", "Pastizal", "Aereo")
+
+  resultado <- switch(cat_alim,
 
     # FORESTAL: Rhinolophus hipposideros, Plecotus auritus, Barbastella.
     # Cazan insectos volando entre la vegetacion o recogiendo presas de las
@@ -479,9 +496,17 @@ assign_priorities_alimentacion <- function(cat_alim) {
       complementaria = c(forest_vars, urban_vars)
     ),
 
-    # DEFAULT: especie sin gremio de alimentacion asignado
-    list(nucleo = character(0), complementaria = c(landscape_vars))
+    # DEFAULT: categoria no reconocida -> FAIL FAST
+    NULL
   )
+
+  if (is.null(resultado)) {
+    stop(sprintf(
+      "Categoria de alimentacion desconocida: '%s'.\n  Categorias validas: %s.\n  Anadir la nueva categoria a assign_priorities_alimentacion() en 02a_funciones_gremios.R\n  y a gremios_alimentacion.csv.",
+      cat_alim, paste(categorias_validas, collapse = ", ")))
+  }
+
+  resultado
 }
 
 # ==============================================================================

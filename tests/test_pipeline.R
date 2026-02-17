@@ -403,6 +403,69 @@ check("Complejos cripticos coherentes con especies", {
 })
 
 # ==============================================================================
+# Test 10: validar_metadata() y fail-fast de gremios
+# ==============================================================================
+cat("\n--- Test 10: Validacion de metadatos y fail-fast ---\n")
+
+check("validar_metadata() pasa con CSVs reales", {
+  validar_metadata(strict = TRUE)
+})
+check("validar_metadata(strict=FALSE) devuelve lista", {
+  res <- validar_metadata(strict = FALSE)
+  stopifnot(is.list(res))
+  stopifnot("errores" %in% names(res))
+  stopifnot("avisos" %in% names(res))
+})
+check("assign_priorities_refugio falla con categoria inventada", {
+  ok <- tryCatch({
+    assign_priorities_refugio("Volador_espacial")
+    FALSE  # No deberia llegar aqui
+  }, error = function(e) {
+    grepl("desconocida", e$message)
+  })
+  stopifnot(ok)
+})
+check("assign_priorities_alimentacion falla con categoria inventada", {
+  ok <- tryCatch({
+    assign_priorities_alimentacion("Carnivoro_gigante")
+    FALSE
+  }, error = function(e) {
+    grepl("desconocida", e$message)
+  })
+  stopifnot(ok)
+})
+check("assign_priorities_refugio funciona con todas las categorias reales", {
+  for (cat in c("Cavernicola", "Arboricola", "Antropofilo", "Fisuricola", "Rupicola")) {
+    res <- assign_priorities_refugio(cat)
+    stopifnot(is.list(res))
+    stopifnot("nucleo" %in% names(res))
+    stopifnot("complementaria" %in% names(res))
+  }
+})
+check("assign_priorities_alimentacion funciona con todas las categorias reales", {
+  for (cat in c("Forestal", "Ripario", "Generalista", "Mosaico", "Pastizal", "Aereo")) {
+    res <- assign_priorities_alimentacion(cat)
+    stopifnot(is.list(res))
+    stopifnot("nucleo" %in% names(res))
+    stopifnot("complementaria" %in% names(res))
+  }
+})
+check("Ninguna especie modelizable tiene refugio/alimentacion NA", {
+  modelables <- gremios$especies %>% filter(modelar == TRUE)
+  stopifnot(all(!is.na(modelables$refugio)))
+  stopifnot(all(!is.na(modelables$alimentacion)))
+  stopifnot(all(modelables$refugio != ""))
+  stopifnot(all(modelables$alimentacion != ""))
+})
+check("No hay especies duplicadas en especies_gremios.csv", {
+  stopifnot(!any(duplicated(gremios$especies$especie)))
+})
+check("No hay espacios trailing en nombres de especie", {
+  nombres <- gremios$especies$especie
+  stopifnot(all(nombres == trimws(nombres)))
+})
+
+# ==============================================================================
 # Resumen
 # ==============================================================================
 

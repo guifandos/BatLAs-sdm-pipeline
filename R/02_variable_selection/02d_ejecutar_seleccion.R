@@ -81,6 +81,42 @@ if (length(sp_sin_gremio) > 0) {
   }
 }
 
+# Validar que las categorias de refugio/alimentacion de las especies modelizables
+# existen realmente en las tablas de gremios. Si no, assign_priorities_* fallaria
+# en medio del bucle (fail-fast aqui para detectarlo antes).
+sp_modelizables <- gremios$especies %>%
+  filter(modelar == TRUE, especie %in% especies_en_datos)
+
+cats_refugio_usadas <- unique(sp_modelizables$refugio[!is.na(sp_modelizables$refugio)])
+cats_refugio_validas <- gremios$refugio$categoria
+bad_ref <- setdiff(cats_refugio_usadas, cats_refugio_validas)
+if (length(bad_ref) > 0) {
+  sp_afectadas <- sp_modelizables$especie[sp_modelizables$refugio %in% bad_ref]
+  stop(sprintf(
+    "Categorias de refugio desconocidas: %s (especies: %s).\n  Validas: %s.\n  Corregir en '%s' o anadir en '%s'.",
+    paste(bad_ref, collapse = ", "),
+    paste(head(sp_afectadas, 5), collapse = ", "),
+    paste(cats_refugio_validas, collapse = ", "),
+    basename(CONFIG$paths$especies_gremios),
+    basename(CONFIG$paths$gremios_refugio)
+  ))
+}
+
+cats_alim_usadas <- unique(sp_modelizables$alimentacion[!is.na(sp_modelizables$alimentacion)])
+cats_alim_validas <- gremios$alimentacion$categoria
+bad_alim <- setdiff(cats_alim_usadas, cats_alim_validas)
+if (length(bad_alim) > 0) {
+  sp_afectadas <- sp_modelizables$especie[sp_modelizables$alimentacion %in% bad_alim]
+  stop(sprintf(
+    "Categorias de alimentacion desconocidas: %s (especies: %s).\n  Validas: %s.\n  Corregir en '%s' o anadir en '%s'.",
+    paste(bad_alim, collapse = ", "),
+    paste(head(sp_afectadas, 5), collapse = ", "),
+    paste(cats_alim_validas, collapse = ", "),
+    basename(CONFIG$paths$especies_gremios),
+    basename(CONFIG$paths$gremios_alimentacion)
+  ))
+}
+
 # Intersectar especies modelizables (modelar==TRUE en CSV) con las presentes en datos
 especies <- intersect(obtener_especies_modelizables(gremios), especies_en_datos)
 # Filtrar por lista piloto si se definio en CONFIG
