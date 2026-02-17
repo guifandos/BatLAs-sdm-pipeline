@@ -419,4 +419,199 @@ print_config <- function() {
   cat("\n================================================================================\n\n")
 }
 
+# ==============================================================================
+# VALIDACION DE METADATOS ECOLOGICOS
+# ==============================================================================
+# Verifica la coherencia interna de los CSVs de metadatos (gremios, complejos,
+# diccionario) ANTES de ejecutar cualquier fase. Detecta errores que de otro
+# modo producirian modelos silenciosamente incorrectos.
+#
+# Se llama desde run_pipeline.R y desde la vineta 00_inicio_rapido.R.
+# ==============================================================================
+
+validar_metadata <- function(strict = TRUE) {
+
+  errores <- c()
+  avisos  <- c()
+
+  cat("\n--- Validando metadatos ecologicos ---\n")
+
+  # --- 1. Cargar CSVs ---
+  if (!file.exists(CONFIG$paths$especies_gremios)) {
+    stop(sprintf("No se encuentra especies_gremios: %s", CONFIG$paths$especies_gremios))
+  }
+  if (!file.exists(CONFIG$paths$gremios_refugio)) {
+    stop(sprintf("No se encuentra gremios_refugio: %s", CONFIG$paths$gremios_refugio))
+  }
+  if (!file.exists(CONFIG$paths$gremios_alimentacion)) {
+    stop(sprintf("No se encuentra gremios_alimentacion: %s", CONFIG$paths$gremios_alimentacion))
+  }
+
+  esp_tbl  <- read.csv(CONFIG$paths$especies_gremios, stringsAsFactors = FALSE)
+  ref_tbl  <- read.csv(CONFIG$paths$gremios_refugio, stringsAsFactors = FALSE)
+  alim_tbl <- read.csv(CONFIG$paths$gremios_alimentacion, stringsAsFactors = FALSE)
+
+  # --- 2. Columnas requeridas ---
+  cols_esp <- c("especie", "refugio", "alimentacion", "modelar")
+  faltantes <- setdiff(cols_esp, names(esp_tbl))
+  if (length(faltantes) > 0) {
+    errores <- c(errores, sprintf(
+      "especies_gremios.csv le faltan columnas: %s", paste(faltantes, collapse = ", ")))
+  }
+
+  if (!"categoria" %in% names(ref_tbl)) {
+    errores <- c(errores, "gremios_refugio.csv no tiene columna 'categoria'")
+  }
+  if (!"categoria" %in% names(alim_tbl)) {
+    errores <- c(errores, "gremios_alimentacion.csv no tiene columna 'categoria'")
+  }
+
+  # --- 3. Categorias de gremio validas ---
+  cats_refugio_validas <- ref_tbl$categoria
+  cats_alim_validas    <- alim_tbl$categoria
+
+  cats_refugio_usadas <- unique(esp_tbl$refugio[!is.na(esp_tbl$refugio)])
+  cats_alim_usadas    <- unique(esp_tbl$alimentacion[!is.na(esp_tbl$alimentacion)])
+
+  bad_ref <- setdiff(cats_refugio_usadas, cats_refugio_validas)
+  if (length(bad_ref) > 0) {
+    errores <- c(errores, sprintf(
+      "Categorias de refugio en especies_gremios.csv no definidas en gremios_refugio.csv: %s\n  Validas: %s",
+      paste(bad_ref, collapse = ", "), paste(cats_refugio_validas, collapse = ", ")))
+  }
+
+  bad_alim <- setdiff(cats_alim_usadas, cats_alim_validas)
+  if (length(bad_alim) > 0) {
+    errores <- c(errores, sprintf(
+      "Categorias de alimentacion en especies_gremios.csv no definidas en gremios_alimentacion.csv: %s\n  Validas: %s",
+      paste(bad_alim, collapse = ", "), paste(cats_alim_validas, collapse = ", ")))
+  }
+
+  # --- 4. Espacios trailing / encoding en nombres de especie ---
+  nombres_raw <- esp_tbl$especie
+  nombres_trim <- trimws(nombres_raw)
+  con_espacios <- nombres_raw[nombres_raw != nombres_trim]
+  if (length(con_espacios) > 0) {
+    errores <- c(errores, sprintf(
+      "Especies con espacios trailing/leading en especies_gremios.csv: '%s'",
+      paste(con_espacios, collapse = "', '")))
+  }
+
+  # --- 5. Especies duplicadas ---
+  dupl <- nombres_trim[duplicated(nombres_trim)]
+  if (length(dupl) > 0) {
+    errores <- c(errores, sprintf(
+      "Especies duplicadas en especies_gremios.csv: %s", paste(dupl, collapse = ", ")))
+  }
+
+  # --- 6. Complejos taxonomicos ---
+  if (file.exists(CONFIG$paths$complejos_taxonomicos)) {
+    comp_tbl <- read.csv(CONFIG$paths$complejos_taxonomicos, stringsAsFactors = FALSE)
+
+    # 6a. Todas las especies de complejos deben existir en especies_gremios
+    all_sp_in_complex <- unique(trimws(unlist(strsplit(comp_tbl$especies_incluidas, ",\\s*"))))
+    missing_from_main <- setdiff(all_sp_in_complex, nombres_trim)
+    if (length(missing_from_main) > 0) {
+      errores <- c(errores, sprintf(
+        "Especies en complejos_taxonomicos.csv no encontradas en especies_gremios.csv: %s",
+        paste(missing_from_main, collapse = ", ")))
+    }
+
+    # 6b. Ninguna especie en mas de un complejo
+    sp_to_comp <- data.frame(
+      especie = trimws(unlist(strsplit(comp_tbl$especies_incluidas, ",\\s*"))),
+      complejo = rep(comp_tbl$complejo, lengths(strsplit(comp_tbl$especies_incluidas, ",\\s*"))),
+      stringsAsFactors = FALSE
+    )
+    sp_counts <- table(sp_to_comp$especie)
+    duplicados <- names(sp_counts[sp_counts > 1])
+    if (length(duplicados) > 0) {
+      for (sp in duplicados) {
+        comps <- sp_to_comp$complejo[sp_to_comp$especie == sp]
+        errores <- c(errores, sprintf(
+          "Especie '%s' aparece en multiples complejos: %s", sp, paste(comps, collapse = ", ")))
+      }
+    }
+
+    # 6c. n_especies coincide con el conteo real
+    for (i in seq_len(nrow(comp_tbl))) {
+      spp <- trimws(unlist(strsplit(comp_tbl$especies_incluidas[i], ",\\s*")))
+      if ("n_especies" %in% names(comp_tbl) && !is.na(comp_tbl$n_especies[i])) {
+        if (length(spp) != comp_tbl$n_especies[i]) {
+          avisos <- c(avisos, sprintf(
+            "Complejo '%s': n_especies=%d pero hay %d especies listadas",
+            comp_tbl$complejo[i], comp_tbl$n_especies[i], length(spp)))
+        }
+      }
+    }
+
+    # 6d. Nombres de complejos no colisionan con nombres de especies reales
+    collision <- intersect(comp_tbl$complejo, nombres_trim)
+    if (length(collision) > 0) {
+      errores <- c(errores, sprintf(
+        "Nombres de complejos colisionan con nombres de especies reales: %s",
+        paste(collision, collapse = ", ")))
+    }
+
+    # 6e. Marcador 'complejo' en especies_gremios.csv es coherente
+    if ("complejo" %in% names(esp_tbl)) {
+      for (i in seq_len(nrow(comp_tbl))) {
+        spp <- trimws(unlist(strsplit(comp_tbl$especies_incluidas[i], ",\\s*")))
+        comp_name <- comp_tbl$complejo[i]
+        for (sp in spp) {
+          sp_row <- esp_tbl[esp_tbl$especie == sp, ]
+          if (nrow(sp_row) > 0) {
+            marcador <- sp_row$complejo[1]
+            if (is.na(marcador) || marcador == "") {
+              avisos <- c(avisos, sprintf(
+                "Especie '%s' esta en complejo '%s' pero no tiene marcador en especies_gremios.csv",
+                sp, comp_name))
+            } else if (marcador != comp_name) {
+              errores <- c(errores, sprintf(
+                "Especie '%s': marcador complejo='%s' pero pertenece a '%s' en complejos_taxonomicos.csv",
+                sp, marcador, comp_name))
+            }
+          }
+        }
+      }
+    }
+  }
+
+  # --- 7. Especies con modelar=TRUE pero sin refugio o alimentacion ---
+  modelables <- esp_tbl[esp_tbl$modelar == TRUE, ]
+  sin_refugio <- modelables$especie[is.na(modelables$refugio) | modelables$refugio == ""]
+  sin_alim    <- modelables$especie[is.na(modelables$alimentacion) | modelables$alimentacion == ""]
+  if (length(sin_refugio) > 0) {
+    errores <- c(errores, sprintf(
+      "Especies con modelar=TRUE pero sin refugio: %s", paste(sin_refugio, collapse = ", ")))
+  }
+  if (length(sin_alim) > 0) {
+    errores <- c(errores, sprintf(
+      "Especies con modelar=TRUE pero sin alimentacion: %s", paste(sin_alim, collapse = ", ")))
+  }
+
+  # --- Reportar avisos ---
+  if (length(avisos) > 0) {
+    cat("\n  AVISOS:\n")
+    for (a in avisos) cat(sprintf("    [!] %s\n", a))
+  }
+
+  # --- Reportar errores ---
+  if (length(errores) > 0) {
+    cat("\n  ERRORES DE METADATOS:\n")
+    for (err in errores) cat(sprintf("    [X] %s\n", err))
+    if (strict) {
+      stop(sprintf("Validacion de metadatos fallida: %d errores. Corregir CSVs antes de continuar.",
+                    length(errores)))
+    } else {
+      warning(sprintf("Validacion de metadatos: %d errores (modo no-estricto, continuando)",
+                      length(errores)))
+    }
+  } else {
+    cat("  [OK] Metadatos validados correctamente\n")
+  }
+
+  invisible(list(errores = errores, avisos = avisos))
+}
+
 message("[OK] Configuracion cargada: CONFIG")
