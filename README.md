@@ -1,8 +1,8 @@
-# Atlas de Distribucion de Murcielagos de la Peninsula Iberica
+# Atlas de Distribución de Murciélagos de la Península Ibérica
 
-**Proyecto SECEMU** — Modelos de distribucion de ~30 especies de murcielagos a resolucion UTM 10x10 km.
+— Modelos de distribución de ~30 especies de murciélagos a una resolución UTM de 10x10 km.
 
-Pipeline reproducible que combina modelos ambientales (GLM) con modelos espaciales (GAM), aplica transformacion de favorabilidad (Real et al. 2006) e interseccion fuzzy, con cuantificacion de incertidumbre multi-fuente.
+Pipeline reproducible que combina modelos ambientales (GLM) con modelos espaciales (GAM), aplica la transformación de favorabilidad (Real et al. 2006) y la intersección fuzzy, y cuantifica de incertidumbre multifuente.
 
 ---
 
@@ -10,31 +10,31 @@ Pipeline reproducible que combina modelos ambientales (GLM) con modelos espacial
 
 1. [Arquitectura general](#arquitectura-general)
 2. [Datos de entrada](#datos-de-entrada)
-3. [Fase 0 — Preparacion de datos](#fase-0--preparacion-de-datos)
-4. [Fase 1 — Seleccion de variables](#fase-1--seleccion-de-variables)
-5. [Fases 2-6 — Modelizacion](#fases-2-6--modelizacion)
+3. [Fase 0 — Preparación de datos](#fase-0--preparación-de-datos)
+4. [Fase 1 — Selección de variables](#fase-1--seleccion-de-variables)
+5. [Fases 2-6 — Modelización](#fases-2-6--modelización)
 6. [Fase 3-bis — Modelo espacial sobre residuos](#fase-3-bis--modelo-espacial-sobre-residuos)
-7. [Fase 7 — Visualizacion](#fase-7--visualizacion)
-8. [Resumen metodologico](#resumen-metodologico)
+7. [Fase 7 — Visualización](#fase-7--visualización)
+8. [Resumen metodológico](#resumen-metodologico)
 9. [Quick start](#quick-start)
 10. [Estructura del repositorio](#estructura-del-repositorio)
 11. [Tests](#tests)
-12. [Sistema de validacion de datos](#sistema-de-validacion-de-datos)
+12. [Sistema de validación de datos](#sistema-de-validación-de-datos)
 13. [Optimizaciones implementadas](#optimizaciones-implementadas)
 14. [Requisitos](#requisitos)
-15. [Autores y citacion](#autores-y-citacion)
+15. [Autores y citación](#autores-y-citación)
 
 ---
 
 ## Arquitectura general
 
-El pipeline esta orquestado por `R/run_pipeline.R` y controlado desde un unico archivo de configuracion (`R/00_setup/00_config.R`). Todas las rutas, umbrales y parametros se definen ahi.
+El pipeline está orquestado por `R/run_pipeline.R` y controlado desde un único archivo de configuración (`R/00_setup/00_config.R`). Todas las rutas, los umbrales y los parámetros se definen ahí.
 
 ```
-Fase 0: Preparacion datos  (01a-01h)       ──  8 scripts
+Fase 0: Preparación datos  (01a-01h)       ──  8 scripts
 Fase 1: Seleccion variables (02a-02d)      ──  4 scripts
 Fase 2: Modelo ambiental    (03a)          ──  GLM + Favorabilidad + Bootstrap
-Fase 3: Modelo espacial     (03b)          ──  GAM/GLM sobre PA, seleccion por AICc
+Fase 3: Modelo espacial     (03b)          ──  GAM/GLM sobre PA, selección por AICc
   └ 3-bis: Espacial residuos (03b_bis)     ──  GAM sobre residuos del GLM (complementario)
 Fase 4: Interseccion fuzzy  (03c)          ──  F = sqrt(F_amb x F_esp)
 Fase 5: Validacion cruzada  (03d)          ──  CV espacial k-fold (k=5, 10 rep)
@@ -42,14 +42,14 @@ Fase 6: Incertidumbre       (03e)          ──  MESS + Bootstrap + Esfuerzo
 Fase 7: Mapas atlas         (04a-04c)      ──  Paneles estilo SECEMU
 ```
 
-Cada fase puede activarse/desactivarse en `CONFIG$control$ejecutar`. Cada especie genera su propia carpeta de resultados (`output/modelos/{especie}/`).
+Cada fase puede activarse/desactivarse en `CONFIG$control$ejecutar`. Cada especie genera su propia carpeta de resultados en `output/modelos/{especie}/`.
 
 ### Dependencias entre fases
 
 | Fase | Requiere |
 |------|----------|
-| 0 (Preparacion) | Datos brutos en `data/raw/` |
-| 1 (Seleccion) | Fase 0: `PAxENV_all_metodos.rds` |
+| 0 (Preparación) | Datos brutos en `data/raw/` |
+| 1 (Seleccion) | Fase 0: `PAxENV_all_metodométodo |
 | 2 (GLM ambiental) | Fase 1: JSONs con variables seleccionadas |
 | 3 (GAM espacial) | Fase 2: `datos_entrenamiento.rds` |
 | 4 (Fuzzy) | Fases 2 + 3: `bootstrap_samples.rds` |
@@ -63,96 +63,94 @@ Cada fase puede activarse/desactivarse en `CONFIG$control$ejecutar`. Cada especi
 
 Los datos brutos **no se incluyen** en el repositorio. Deben colocarse en `data/raw/`:
 
-| Archivo | Ruta | Descripcion |
+| Archivo | Ruta | Descripción |
 |---------|------|-------------|
-| Presencias | `data/raw/presencias/*.csv` | Registros: especie, cuadricula UTM, metodologia |
+| Presencias | `data/raw/presmétodo/*.csv` | Registros: especie, cuadrícula UTM, metodología |
 | Malla Peninsula | `data/raw/shapefiles/Malla10x10_clip.shp` | Grid UTM 10x10 km (zona 30N) |
 | Malla Baleares | `data/raw/shapefiles/Malla10x10_BAL_Clip_nueva.shp` | Grid UTM 10x10 km (zona 31N, reproyectado a 30N) |
-| Variables EC | `data/raw/variables/Variables_EC.xlsx` | Variables ambientales Peninsula |
+| Variables EC | `data/raw/variables/Variables_EC.xlsx` | Variables ambientales Península |
 | Variables BAL | `data/raw/variables/Variables_BAL.xlsx` | Variables ambientales Baleares |
-| Karst | `data/raw/variables/10x10_Karst_PIBAL.csv` | Indices karsticos por cuadricula |
-| Litologia | `data/raw/variables/10x10_lito_COLOR_PIBAL.csv` | Clases litologicas por cuadricula |
+| Karst | `data/raw/variables/10x10_Karst_PIBALmétodo| Índices karsticos por cuadrícula |
+| Litología | `data/raw/variables/10x10_lito_COLOR_PIBAL.csv` | Clases litológicas por cuadrícula |
 
-Los metadatos ecologicos **si estan versionados** en `data/metadata/`:
-- `especies_gremios.csv` — asignacion especie-gremio (refugio, alimentacion)
+Los metadatos ecológicos **sí están versionados** en `data/metadata/`:
+- `especies_gremios.csv` — asignación espmétodoremio (refugio, alimentación)
 - `gremios_refugio.csv` / `gremios_alimentacion.csv` — variables prioritarias por gremio
 - `complejos_taxonomicos.csv` — complejos de especies cripticas
 - `diccionario_variables.csv` — diccionario de variables predictoras
 
 ---
 
-## Fase 0 — Preparacion de datos
+## Fase 0 — Preparación de datos
 
 > Scripts: `R/01_data_preparation/01a` a `01h` | ~63 KB de codigo
 
 Transforma los datos brutos en la matriz **PAxENV** (Presencia/Ausencia x Variables Ambientales), lista para modelizar.
 
-| Script | Funcion | Entrada | Salida |
+| Script | Función | Entrada | Salida |
 |--------|---------|---------|--------|
-| **01a** | Presencias + complejos cripticos + PA por metodo | CSV presencias, complejos CSV | `pa_metodo.rds`, `muestras_metodo_wide.rds` |
+| **01a** | Presencias + complejos cripticos + PA por método | CSV presencias, complejos CSV | `pa_metodo.rds`, `muestras_metodo_wide.rds` |
 | **01b** | Mallas UTM (Peninsula + Baleares) | Shapefiles | `malla_union.rds` (sf) |
 | **01c** | Variables ambientales desde Excel | Excel EC + BAL | `predictores_seo.rds` |
-| **01d** | Agrupacion CORINE (44 clases a 9 grupos) | predictores_seo | predictores_seo (actualizado) |
+| **01d** | Agrupación CORINE (44 clases a 9 grupos) | predictores_seo | predictores_seo (actualizado) |
 | **01e** | Geologia: Karst + Litologia + indices + PCA | CSV karst/lito | `geo_features.rds` |
-| **01f** | Union predictores + z-score unificado | SEO + GEO + malla | `predictores_seo_geo.rds` |
-| **01g** | PAxENV por metodo + formato ancho | PA + predictores | `PAxENV_*.rds`, `esfuerzo.rds` |
+| **01f** | Union predictores + z-score unificado | SEO + GEO +Método | `predictores_seo_geo.rds` |
+| **01g** | PAxENV por método + formato ancho | PA + predictores | `PAxENV_*.rds`, `esfuerzo.rds` |
 | **01h** | Mapas QA (opcional) | predictores_sf | PNGs de chequeo |
 
-### Decisiones de diseno clave
+### Decisiones de diseño clave
 
 - **Canarias (28R)** excluidas sistematicamente (diferente region biogeografica)
 - **Baleares (zona 31N)** reproyectadas a zona 30N para coherencia espacial
-- **Escalado z-score diferido** hasta 01f: se aplica sobre la union Peninsula + Baleares para que media y SD sean unificadas
-- **Complejos cripticos**: especies indistinguibles por metodo se agrupan (ej. *Myotis myotis* + *M. blythii* = Myotis_grande)
-- **Factor de esfuerzo** por cuadricula: 0 metodos = 1.0, 1 = 0.7, 2 = 0.5, 3+ = 0.3 (usado en Fase 6)
+- **Escalado z-score diferido** hasta 01f: se aplica sobre la unión Península + Baleares para que media y SD sean unificadas
+- **Complejos cripticos**: especies indistinguibles por método se agrupan (ej. *Myotis myotis* + *M. blythii* = Myotis_grande)
+- **Factor de esfuerzo** por cuadrícula: 0 métodos = 1.0, 1 = 0.7, 2 = 0.5, 3+ = 0.3 (usado en Fase 6)
 
 ### Producto final de Fase 0
 
 ```
 data/modelado_ready/
-  PAxENV_acustica.rds        # Por metodo de muestreo
+  PAxENV_acustica.rds        # Por método de muestreo
   PAxENV_captura.rds
   PAxENV_cuevas.rds
   PAxENV_otros.rds
   PAxENV_all_metodos.rds     # Formato ancho unificado (columnas sp_*)
-  esfuerzo.rds               # n_metodos y factor_incert por cuadricula
+  esfuerzo.rds               # n_metodos y factor_incert por cuadrícula
 ```
 
 ---
 
-## Fase 1 — Seleccion de variables
+## Fase 1 — Selección de variables
 
-> Scripts: `R/02_variable_selection/02a` a `02d` | ~72 KB de codigo
-
-Selecciona las variables predictoras optimas para cada especie, combinando criterios ecologicos y estadisticos.
+> Scripts: `R/02_variable_selection/02a` a `02d` | ~72 KB de código que selecciona las variables predictoras óptimas para cada especie, combinando criterios de colmétodos y estadísticos.
 
 ### Sistema de gremios (2 ejes)
 
-Las variables se priorizan segun la ecologia de cada especie:
+Las variables se priorizan según la ecología de cada especie:
 
-| Eje | Categorias | Variables prioritarias (ejemplos) |
+| Eje | Categorías | Variables prioritarias (ejemplos) |
 |-----|-----------|----------------------------------|
 | **Refugio** | Cavernicola, Arboricola, Antropofilo, Fisuricola, Rupicola | Karst, CLC_bosques, CLC_urbano, CLC_rupicola |
-| **Alimentacion** | Forestal, Ripario, Generalista, Mosaico, Pastizal, Aereo | CLC_bosques, CLC_acuatico, CLC_mosaico, CLC_pastizal |
+| **Alimentación** | Forestal, Ripario, Generalista, Mosaico, Pastizal, Aéreo | CLC_bosques, CLC_acuatico, CLC_mosaico, CLC_pastizal |
 
-Cada variable recibe una **prioridad** (4=nucleo, 3=climatica, 2=complementaria, 1=permitida) segun el cruce refugio x alimentacion de la especie. La clasificacion se lee de CSVs, no del codigo.
+Metodológicamente, recibe una **prioridad** (4=núcleo, 3=climática, 2=complementaria, 1=permitida) el cruce refugio x alimentación de la especie. La clasificación se lee de archivos CSV, no del código.
 
 ### Pipeline de 7 fases + 3 salvaguardas
 
-| Fase | Nombre | Metodo | Criterio |
+| Fase | Nombre | Método | Criterio |
 |------|--------|--------|----------|
-| 1 | Preseleccion gremio | Ecologico | Eliminar variables con prioridad = 0 |
-| 2 | Limpieza basica | QC | NA > 30%, varianza = 0, separacion perfecta |
-| 3 | select07 ponderado | Correlacion | \|r\| > 0.8: eliminar variable de menor prioridad (Munoz & Real 2006) |
-| 4 | VIF iterativo | Multicolinealidad | VIF > 10: eliminar variable de menor prioridad (Dormann et al. 2013) |
-| 5 | Control muestral | Regla de Harrell | N/p >= 8; modelos simples (30-59 pres): max 5 vars |
-| 6 | Validacion ecologica | Robustez | Asegurar >= 1 variable climatica y >= 2 de gremio |
+| 1 | Preselección gremio | Ecológico | Eliminar variables con prioridad = 0 |
+| 2 | Limpieza básica | QC | NA > 30%, varianza = 0, separación perfecta |
+| 3 | select07 ponderado | Correlación | \|r\| > 0 método eliminar variable de menor prioridad (Muñoz & Real 2006) |
+| 4 | VIF iterativo | Multicolmétododad | VIF > 10: eliminar variable de menor prioridad (Dormann et al. 2013) |
+| 5 | Control muestral | Regla de Harrell | N/p >= 8; modelos simples (30-59 premétodox 5 vars |
+| 6 | Validación ecológica | Robustez | Asegurar >= 1 variable climática y >método gremio |
 | 7 | Validacion predictiva | k-fold CV (k=5) | AUC, TSS, Kappa sobre GLM binomial |
 
 **Salvaguardas integradas:**
 - **S1** (post-fase 3): Si quedan < 3 variables de gremio, rescatar las mejores eliminadas por AIC
 - **S2** (post-fase 5): En modelos simples, intercambiar variables p=1 por variables de gremio excluidas
-- **S3** (post-fase 6): Si falta variable climatica o de gremio, rescatar la mejor eliminada en fases 2-4
+- **S3** (post-fase 6): Si falta variable climática o de gremio, rescatar la mejor eliminada en fases 2-4
 
 ### Salida
 
@@ -183,7 +181,7 @@ Un JSON por especie en `output/seleccion_variables/variables_json/`:
 GLM binomial con las variables seleccionadas en Fase 1.
 
 ```
-Datos:     PAxENV filtrado a cuadriculas muestreadas
+Datos:     PAxENV filtrado a cuadricuMétodoestreadas
 Split:     70% entrenamiento / 30% test (seed = 123)
 Modelo:    glm(PA ~ var1 + var2 + ... + varN, family = binomial)
 Transform: Favorabilidad (Real et al. 2006)
@@ -313,7 +311,7 @@ Los residuos capturan solo lo que el ambiente NO explica: dispersion limitada, b
 |--------|---------|---------|
 | **04a** | Mapas atlas: panel 2x2 (favorabilidad + incertidumbre) estilo SECEMU | PNG 300 dpi |
 | **04b** | Paneles de incertidumbre detallados (MESS, bootstrap, esfuerzo) | PNG 300 dpi |
-| **04c** | Figuras resumen (riqueza, patrones multi-especie) | PNG 300 dpi |
+| **04c** | Figuras resumen (riqueza, patrones multiespecie) | PNG 300 dpi |
 
 Paletas colorblind-safe: `batlow` (favorabilidad), `lajolla` (incertidumbre). CRS de salida: ETRS89/UTM zona 30N (EPSG:25830).
 
@@ -321,46 +319,46 @@ Paletas colorblind-safe: `batlow` (favorabilidad), `lajolla` (incertidumbre). CR
 
 ## Resumen metodologico
 
-| Componente | Metodo | Referencia |
+| Componente | Método | Referencia |
 |-----------|--------|------------|
 | Modelo ambiental | GLM binomial + Favorabilidad | Real et al. (2006) |
 | Modelo espacial | GAM/GLM seleccionado por AICc | Burnham & Anderson (2002) |
-| Interseccion | Fuzzy geometrica | Acevedo & Real (2012) |
+| Intersección | Fuzzy geométrica | Acevedo & Real (2012) |
 | Incertidumbre | MESS + Bootstrap + Esfuerzo | Elith et al. (2010) |
-| Validacion | CV espacial k-fold con bloques k-means | Roberts et al. (2017) |
-| Seleccion variables | select07 + VIF + Regla de Harrell + gremios | Munoz & Real (2006), Dormann et al. (2013) |
-| Complejos cripticos | Agrupacion taxonomica configurable | — |
+| Validación | CV espacial k-fold con bloques k-means | Roberts et al. (2017) |
+| Selección variables | select07 + VIF + Regla de Harrell + gremios | Muñoz & Real (2006), Dormann et al. (2013) |
+| Complejos cripticos | Agrupación taxonómica configurable | — |
 | Geologia | Karst + Litologia + Shannon H + PCA | — |
-| CORINE | Agrupacion de 44 clases a 9 grupos ecologicos | — |
+| CORINE | Agrupación de 44 clases a 9 grupos ecológicos | — |
 
-### Parametros principales (configurables en `00_config.R`)
+### Parámetros principales (configurables en `00_config.R`)
 
-| Parametro | Valor por defecto | Fase |
+| Parámetro | Valor por defecto | Fase |
 |-----------|-------------------|------|
 | `correlation_threshold` | 0.8 | Seleccion (fase 3) |
-| `vif_threshold` | 10 | Seleccion (fase 4) |
+| `vif_threshold` | 10 | Selección (fase 4) |
 | `ratio_Np` | 8 | Seleccion (fase 5) |
-| `min_presencias` | 30 | Seleccion + Modelado |
+| `min_presencias` | 30 | Selección + Modelado |
 | `prop_train` | 0.70 | GLM ambiental |
 | `n_bootstrap` | 500 | GLM ambiental + espacial |
 | `k_gam` | 30 | GAM espacial |
-| `metodo_fuzzy` | geometrica | Interseccion |
-| `k_folds` | 5 | Validacion cruzada |
+| `metodo_fuzzy` | geométrica | Interseccion |
+| `k_folds` | 5 | Validación cruzada |
 | `peso_mess / peso_bootstrap / peso_esfuerzo` | 0.33 / 0.33 / 0.34 | Incertidumbre |
 
 ---
 
 ## Quick start
 
-### Opcion A: Vineta de inicio rapido (recomendado para la primera vez)
+### Opción A: Vineta de inicio rápido (recomendado para la primera vez)
 
-El script `vignettes/00_inicio_rapido.R` automatiza todo el proceso de configuracion y ejecuta un ejemplo piloto con 2 especies:
+El script `vignettes/00_inicio_rapido.R` automatiza todo el proceso de configuración y ejecuta un ejemplo piloto con 2 especies:
 
 ```r
 # 1. Clonar repositorio
 # git clone https://github.com/gfandos/atlas-murcielagos-iberia.git
 
-# 2. Abrir el proyecto en RStudio o cambiar al directorio raiz
+# 2. Abrir el proyecto en RStudio o cambiar al directorio raíz
 setwd("atlas-murcielagos-iberia")
 
 # 3. Colocar datos brutos en data/raw/ (ver tabla de datos de entrada)
@@ -369,17 +367,17 @@ setwd("atlas-murcielagos-iberia")
 source("vignettes/00_inicio_rapido.R")
 ```
 
-La vineta realiza automaticamente:
+La ventana realizaautomáticamentee:
 
 1. Verifica el directorio de trabajo
 2. Instala y carga todos los paquetes requeridos
 3. Configura `renv` (crea `renv.lock` si no existe, o restaura si existe)
-4. Verifica que todos los archivos de entrada estan presentes
+4. Verifica que todos los archivos de entrada están presentes
 5. Configura modo piloto (2 especies, 50 bootstrap, 2 rep CV)
 6. Ejecuta todas las fases (0-7) con datos reales
-7. Verifica los resultados y muestra metricas
+7. Verifica los resultados y muestra métricas
 
-### Opcion B: Ejecucion directa
+### Opción B: Ejecución directa
 
 ```r
 # 1. Restaurar paquetes
@@ -390,24 +388,24 @@ renv::restore()
 # 3. Configurar R/00_setup/00_config.R
 #    - Verificar rutas
 #    - Seleccionar fases a ejecutar (CONFIG$control$ejecutar)
-#    - Para prueba rapida: CONFIG$especies$piloto = c("Rhinolophus ferrumequinum")
+#    - Para prueba rápida: CONFIG$especies$piloto = c("Rhinolophus ferrumequinum")
 
 # 4. Ejecutar
 source("R/run_pipeline.R")
 ```
 
-### Opcion C: Solo verificar que el codigo funciona (sin datos brutos)
+### Opción C: Solo verificar que el código funciona (sin datos brutos)
 
 ```r
 # Ejecutar tests con datos simulados (~1 minuto)
 source("tests/test_pipeline.R")
 ```
 
-Los tests validan configuracion, utilidades core, CORINE, gremios, GLM, seleccion de variables, fuzzy, logging, y consistencia de metadatos.
+Los tests validan la configuración, utilidades core, CORINE, gremios, GLM, selección de variables, fuzzy, logging y consistencia de metadatos.
 
-### Pasar de piloto a produccion
+### Pasar de piloto a producción
 
-Tras completar la vineta con exito, para lanzar el pipeline completo:
+Tras completar la viñeta con éxito, para lanzar el pipeline completo:
 
 ```r
 # En R/00_setup/00_config.R, cambiar:
@@ -423,9 +421,9 @@ source("R/run_pipeline.R")
 
 Tiempo estimado para el pipeline completo: **3-6 horas** (~25 especies, 500 bootstrap).
 
-### Modificar la ecologia sin tocar codigo
+### Modificar la ecología sin tocar código
 
-Para modificar la clasificacion ecologica de una especie, editar `data/metadata/especies_gremios.csv`. Para anadir un complejo criptico, editar `data/metadata/complejos_taxonomicos.csv`. No es necesario tocar codigo R.
+Para modificar la clasificación ecológica de una especie, editar `data/metadata/especies_gremios.csv`. Para añadir un complejo criptico, editar `data/metadata/complejos_taxonomicos.csv`. No es necesario tocar código en R.
 
 ---
 
@@ -437,8 +435,8 @@ atlas-murcielagos-iberia/
 |-- R/
 |   |-- run_pipeline.R                    # Script maestro
 |   |-- 00_setup/
-|   |   |-- 00_config.R                   # TODA la configuracion centralizada
-|   |   +-- 00_packages.R                 # Gestion de dependencias
+|   |   |-- 00_config.R                   # TODA la configuración centralizada
+|   |   +-- 00_packages.R                 # Gestión de dependencias
 |   |-- 01_data_preparation/              # Fase 0: 8 scripts (01a-01h)
 |   |-- 02_variable_selection/            # Fase 1: 4 scripts (02a-02d)
 |   |-- 03_modeling/                      # Fases 2-6: 5 scripts + 1 complementario
@@ -449,38 +447,38 @@ atlas-murcielagos-iberia/
 |   |   |-- 03d_validacion_cv.R           # CV espacial k-fold
 |   |   +-- 03e_incertidumbre.R           # MESS + Bootstrap + Esfuerzo
 |   |-- 04_visualization/                 # Fase 7: 3 scripts (04a-04c)
-|   +-- utils/                            # 9 modulos compartidos
-|       |-- utils_checkpoints.R           # Checkpoints + normalizacion IDs + validar_n_cuadriculas
+|   +-- utils/                            # 9 módulos compartidos
+|       |-- utils_checkpoints.R           # Checkpoints + normalización IDs + validar_n_cuadriculas
 |       |-- utils_logging.R               # Logging centralizado (CSV estructurado)
-|       |-- utils_favorabilidad.R         # Transformacion de favorabilidad
+|       |-- utils_favorabilidad.R         # Transformación de favorabilidad
 |       |-- utils_metricas.R              # AUC, TSS, sensibilidad, especificidad
-|       |-- utils_mapas.R                 # Funciones de cartografia
-|       |-- utils_corine.R               # Agrupacion CORINE Land Cover
+|       |-- utils_mapas.R                 # Funciones de cartografía
+|       |-- utils_corine.R               # Agrupación CORINE Land Cover
 |       |-- utils_geologia.R             # Karst + litologia + indices
 |       |-- utils_litologia.R            # Procesado de litologia
-|       +-- utils_pca_litologia.R        # PCA sobre clases litologicas
+|       +-- utils_pca_litologia.R        # PCA sobre clases litológicas
 |
 |-- data/
 |   |-- raw/                              # Datos brutos (NO en Git)
 |   |-- processed/                        # Intermedios (NO en Git)
 |   |-- modelado_ready/                   # PAxENV listos (NO en Git)
-|   +-- metadata/                         # Metadatos ecologicos (SI en Git)
+|   +-- metadata/                         # Metadatos ecológicos (SI en Git)
 |
 |-- output/
 |   |-- modelos/{especie}/                # Resultados por especie
 |   |   |-- ambiental/                    # GLM + bootstrap
 |   |   |-- espacial/                     # GAM/GLM + AICc
-|   |   |-- interseccion/                 # Fuzzy final
-|   |   |-- validacion/                   # CV espacial
-|   |   +-- incertidumbre/                # Indice compuesto
-|   |-- seleccion_variables/              # JSONs + diagnosticos
+|   |   |-- intersección/                 # Fuzzy final
+|   |   |-- validación/                   # CV espacial
+|   |   +-- incertidumbre/                # Índice compuesto
+|   |-- seleccion_variables/              # JSONs + diagnósticos
 |   |-- figs/                             # Mapas y figuras
-|   +-- logs/                             # Logs de ejecucion
+|   +-- logs/                             # Logs de ejecución
 |
 |-- vignettes/
 |   +-- 00_inicio_rapido.R               # Vineta: setup + ejemplo piloto (2 especies)
 |
-|-- docs/                                 # Documentacion detallada por fase
+|-- docs/                                 # Documentación detallada por fase
 |-- tests/
 |   +-- test_pipeline.R                  # 40+ tests con datos simulados
 |-- renv/                                 # Reproducibilidad de paquetes
@@ -501,49 +499,49 @@ source("tests/test_pipeline.R")
 
 | Grupo | Tests | Que verifica |
 |-------|-------|-------------|
-| Configuracion | 5 | CONFIG carga, paths, pesos suman 1, `validar_config()` |
+| Configuración | 5 | CONFIG carga, paths, pesos suman 1, `validar_config()` |
 | Funciones core | 8 | `norm_id()`, `favorabilidad()`, `favorabilidad_inv()`, `compute_metrics()`, `impute_median()` |
-| CORINE | 2 | Agrupacion 44 -> 9 clases, nombres correctos |
+| CORINE | 2 | Agrupación 44 -> 9 clases, nombres correctos |
 | Gremios | 7 | Carga CSVs, variables por especie, complejos, `detect_variable_type()` |
-| Anotacion | 2 | `annotate_variables_by_guild()` con/sin especie en metadata |
+| Anotación | 2 | `annotate_variables_by_guild()` con/sin especie en metadata |
 | GLM | 1 | GLM + favorabilidad end-to-end con datos simulados |
-| Seleccion | 3 | `select07_core()`, `fase1_preseleccion_gremio()`, `fase2_limpieza_basica()` |
+| Selección | 3 | `select07_core()`, `fase1_preseleccion_gremio()`, `fase2_limpieza_basica()` |
 | Fuzzy | 3 | Operadores geometrico, pmin, rango [0,1] |
 | Logging | 3 | `init_log()`, `log_event()`, `log_summary()` |
-| Metadatos | 4 | Consistencia refugio/alimentacion, complejos cripticos |
+| Metadatos | 4 | Consistencia refugio/alimentación, complejos cripticos |
 
 Los tests generan datos simulados (500 cuadriculas, 2 especies) y limpian automaticamente al finalizar.
 
 ---
 
-## Sistema de validacion de datos
+## Sistema de validación de datos
 
-La preparacion de datos (Fase 0) incluye un sistema robusto de validacion para detectar errores silenciosos en joins y filtrados.
+La preparación de datos (Fase 0) incluye un sistema robusto de validación para detectar errores silenciosos en joins y filtrados.
 
-### Normalizacion de IDs de cuadricula
+### Normalización de IDs de cuadrícula
 
 Cada fuente de datos (CSV, Excel, shapefile) puede usar un nombre diferente para la columna de cuadricula UTM (`CUADRICULA`, `cuadricula`, `UTMCODE`, `UTM_CODE`, `cuadricula_utm_10x10`, ...). La funcion `std_ids_tbl()` (en `utils_checkpoints.R`):
 
 1. **Auto-detecta** la columna ID entre 14 candidatos conocidos
-2. **Normaliza los valores**: mayusculas, sin espacios, trim (ej. `" 30s ve "` → `"30SVE"`)
-3. **Renombra la columna** al nombre canonico (`CUADRICULA`) para garantizar que todos los joins funcionen
+2. **Normaliza los valores**: mayúsculas, sin espacios, trim (ej. `" 30s ve "` → `"30SVE"`)
+3. **Renombra la columna** al nombre canónico (`CUADRICULA`) para garantizar que todos los joins funcionen
 
 ### Validaciones implementadas
 
 | Punto | Script | Tipo | Que valida |
 |-------|--------|------|-----------|
 | Malla union | 01b | `validar_n_cuadriculas >= 5000` | La malla PI+BAL tiene ~5500 celdas |
-| Variables EC | 01c | `validar_n_cuadriculas >= 5000` | Peninsula sin Canarias ~5300+ |
+| Variables EC | 01c | `validar_n_cuadriculas >= 5000` | Península sin Canarias ~5300+ |
 | Join karst+lito | utils_geologia | `stopifnot(nrow == n_pre)` | No se pierden ni duplican filas |
 | Join geo+PCA | 01e | `stopifnot(nrow == n_pre)` | PCA no introduce duplicados |
-| Join EC+GEO | 01f | Diagnostico IDs + `stopifnot` | Comprueba solapamiento ANTES del join |
-| Join malla+pred | 01f | `stopifnot(nrow == n_malla)` | No se pierden cuadriculas |
+| Join EC+GEO | 01f | Diagnóstico IDs + `stopifnot` | Comprueba solapamiento ANTES del join |
+| Join malla+pred | 01f | `stopifnot(nrow == n_malla)` | No se pierden cuadrículas |
 | Predictores finales | 01f | `validar_n_cuadriculas >= 5000` | Control global post-escalado |
 | Join PA+pred | 01g | Diagnostico IDs + `stopifnot` | Verifica >80% de IDs coinciden |
 | Join compat+esfuerzo | 01g | `stopifnot(nrow == n_pre)` | Esfuerzo no duplica filas |
 | PAxENV final | 01g | `validar_n_cuadriculas >= 5000` | Control global antes de guardar |
 
-Cuando un join produce 0 coincidencias (IDs incompatibles), el pipeline se detiene inmediatamente con un mensaje diagnostico que muestra ejemplos de IDs de ambas tablas para facilitar la depuracion.
+Cuando un join produce 0 coincidencias (IDs incompatibles), el pipeline se detiene inmediatamente con un mensaje diagnóstico que muestra ejemplos de IDs de ambas tablas para facilitar la depuración.
 
 ---
 
@@ -551,27 +549,27 @@ Cuando un join produce 0 coincidencias (IDs incompatibles), el pipeline se detie
 
 ### Prioridad alta
 
-| ID | Descripcion | Fase | Estado |
+| ID | Descripción | Fase | Estado |
 |----|------------|------|--------|
-| O1 | **Paralelizacion del loop de especies**: Loops de 03a y 03b refactorizados en funciones (`modelar_ambiental_sp`, `modelar_espacial_sp`) y ejecutados via `future_lapply` cuando `CONFIG$control$usar_parallel = TRUE`. Fallback secuencial automatico. | 2-3 | Implementado |
+| O1 | **Paralelización del loop de especies**: Loops de 03a y 03b refactorizados en funciones (`modelar_ambiental_sp`, `modelar_espacial_sp`) y ejecutados via `future_lapply` cuando `CONFIG$control$usar_parallel = TRUE`. Fallback secuencial automático. | 2-3 | Implementado |
 | O2 | **GAM k adaptativo**: `k = min(k_max, floor(n_pres / 4))` con suelo de 5. Activado via `CONFIG$espacial$k_gam_adaptativo = TRUE`. Evita sobreajuste en especies raras. | 3 | Implementado |
-| O3 | **Repeticiones de CV**: `CONFIG$validacion$n_rep = 10` con semilla diferente por repeticion (`seed + rep_i - 1`). Metricas promediadas sobre 10 x 5 = 50 folds para mayor estabilidad. | 5 | Implementado |
+| O3 | **Repeticiones de CV**: `CONFIG$validacion$n_rep = 10` con semilla diferente por repetición (`seed + rep_i - 1`). Métricas promediadas sobre 10 x 5 = 50 folds para mayor estabilidad. | 5 | Implementado |
 | O4 | **Pesos de incertidumbre adaptativos**: Pesos proporcionales a la varianza de cada componente (MESS, bootstrap, esfuerzo). Activado via `CONFIG$incertidumbre$pesos_adaptativos = TRUE`. Fallback a pesos fijos si varianza total = 0. | 6 | Implementado |
 
 ### Prioridad media
 
-| ID | Descripcion | Fase | Estado |
+| ID | Descripción | Fase | Estado |
 |----|------------|------|--------|
-| O5 | **Logging en modelo ambiental**: `log_event()` integrado en todo el flujo de 03a (errores GLM, metricas AUC/TSS, checkpoints). Reemplaza `cat()` aislados. | 2 | Implementado |
-| O6 | **Stability selection**: Bootstrap de `select07_weighted` (100 submuestras al 80%). Frecuencia de seleccion por variable guardada en JSON (`stability_freq`). Activado via `CONFIG$seleccion$stability_selection = TRUE`. | 1 | Implementado |
+| O5 | **Logging en modelo ambiental**: `log_event()` integrado en todo el flujo de 03a (errores GLM, métricas AUC/TSS, checkpoints). Reemplaza `cat()` aislados. | 2 | Implementado |
+| O6 | **Stability selection**: Bootstrap de `select07_weighted` (100 submuestras al 80%). Frecuencia de selección por variable guardada en JSON (`stability_freq`). Activado via `CONFIG$seleccion$stability_selection = TRUE`. | 1 | Implementado |
 | O7 | **Logging centralizado**: Nuevo `utils_logging.R` con `init_log()`, `log_event()`, `read_log()`, `log_summary()`. Genera CSV estructurado con timestamp/fase/especie/nivel/mensaje. Integrado en `run_pipeline.R` y todas las fases de modelado. | Global | Implementado |
-| O8 | **Validacion post-join**: `stopifnot()` tras cada `left_join()` critico en 01f (EC+GEO, malla+predictores) y 01g (PA+predictores). Avisos de NAs con conteo y porcentaje. | 0 | Implementado |
+| O8 | **Validación post-join**: `stopifnot()` tras cada `left_join()` crítico en 01f (EC+GEO, malla+predictores) y 01g (PA+predictores). Avisos de NAs con conteo y porcentaje. | 0 | Implementado |
 
 ### Prioridad baja
 
-| ID | Descripcion | Fase | Estado |
+| ID | Descripción | Fase | Estado |
 |----|------------|------|--------|
-| O9 | **Consolidar filtrado Canarias**: Se filtra en 01a, 01b y 01c independientemente. Centralizar en un unico paso. | 0 | Pendiente |
+| O9 | **Consolidar filtrado Canarias**: Se filtra en 01a, 01b y 01c independientemente. Centralizar en un único paso. | 0 | Pendiente |
 | O10 | **Modelo de residuos espaciales (opcional)**: Toggle `CONFIG$espacial$usar_residuos = FALSE`. Si se activa, 03b modela los residuos del GLM ambiental en lugar de PA directamente. Desactivado por defecto para mantener independencia de fases. | 3 | Implementado (opcional) |
 | O11 | **factor_incert configurable**: Umbrales movidos a `CONFIG$incertidumbre$factor_incert_umbrales` como vector nombrado. 01g lee de CONFIG en lugar de valores hardcoded. | 0 | Implementado |
 
@@ -581,38 +579,38 @@ Cuando un join produce 0 coincidencias (IDs incompatibles), el pipeline se detie
 
 - **R** >= 4.1
 - **Paquetes principales**: tidyverse, sf, terra, mgcv, pROC, car, MuMIn, scico, patchwork, rnaturalearth, rnaturalearthdata, readxl, jsonlite, FactoMineR, factoextra, future, future.apply
-- **Gestion de versiones**: `renv` (ejecutar `renv::restore()` tras clonar)
+- **Gestión de versiones**: `renv` (ejecutar `renv::restore()` tras clonar)
 
 ---
 
-## Autores y citacion
+## Autores y citación
 
-- **Guillermo Fandos** — Departamento de Biodiversidad, Ecologia y Evolucion, Universidad Complutense de Madrid — gfandos@ucm.es (desarrollo del pipeline y coordinacion cientifica)
-- **Elena Tena** — SECEMU (coordinacion cientifica y datos)
-- **Silvia Maria Cabezas Leon** — SECEMU (coordinacion cientifica y datos)
-- **Comision SECEMU** (asesoramiento cientifico)
+- **Guillermo Fandos** — Departamento de Biodiversidad, Ecología y Evolución, Universidad Complutense de Madrid — gfandos@ucm.es (desarrollo del pipeline y coordinación científica)
+- **Elena Tena** — SECEMU (coordinación científica y datos)
+- **Silvia María Cabezas León** — SECEMU (coordinación científica y datos)
+- **Comisión SECEMU** (asesoramiento científico)
 
 **Licencia**: CC-BY 4.0
 
-**Citacion**: Ver `CITATION.cff`.
+**Citación**: Ver `CITATION.cff`.
 
 ---
 
-## Documentacion adicional
+## Documentación adicional
 
-### Vineta de inicio
+### Viñeta de inicio
 
-- [`vignettes/00_inicio_rapido.R`](vignettes/00_inicio_rapido.R) — **Empezar aqui**: setup automatizado + ejemplo piloto con 2 especies
+- [`vignettes/00_inicio_rapido.R`](vignettes/00_inicio_rapido.R) — **Empezar aquí**: setup automatizado + ejemplo piloto con 2 especies
 
-### Auditoria
+### Auditoría
 
-- [`AUDIT_PRE_WORKFLOW.md`](AUDIT_PRE_WORKFLOW.md) — Auditoria pre-workflow con checklist de acciones por prioridad
+- [`AUDIT_PRE_WORKFLOW.md`](AUDIT_PRE_WORKFLOW.md) — Auditoría pre-workflow con checklist de acciones por prioridad
 
-### Documentacion por fase
+### Documentación por fase
 
 - [`00_FLUJO_COMPLETO.md`](docs/00_FLUJO_COMPLETO.md) — Diagrama de dependencias y tiempos estimados
-- [`01_PREPARACION_DATOS.md`](docs/01_PREPARACION_DATOS.md) — Detalles de carga y transformacion
+- [`01_PREPARACION_DATOS.md`](docs/01_PREPARACION_DATOS.md) — Detalles de carga y transformación
 - [`02_SELECCION_VARIABLES.md`](docs/02_SELECCION_VARIABLES.md) — Pipeline de 7 fases
 - [`03_MODELIZACION.md`](docs/03_MODELIZACION.md) — GLM, GAM, fuzzy, bootstrap
 - [`04_INCERTIDUMBRE.md`](docs/04_INCERTIDUMBRE.md) — MESS, bootstrap width, esfuerzo
-- [`05_MAPAS_ATLAS.md`](docs/05_MAPAS_ATLAS.md) — Generacion de mapas y paneles
+- [`05_MAPAS_ATLAS.md`](docs/05_MAPAS_ATLAS.md) — Generación de mapas y paneles
