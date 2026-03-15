@@ -1,56 +1,40 @@
 # ==============================================================================
-# .gitignore - Atlas de Murcielagos SECEMU
+# .gitignore - Atlas de Murciélagos SECEMU
 # ==============================================================================
-# Solo se versionan: codigo R/, metadatos data/metadata/, docs/, tests/,
-# configuracion (renv.lock, .Rprofile), CITATION.cff, LICENSE, README.md
+# Se versionan: código R/, shiny_atlas/, metadatos data/metadata/, docs/,
+# tests/, configuración (renv.lock, .Rprofile, renv/settings.json),
+# CITATION.cff, LICENSE, README.md, imagenes/, informes .qmd
 
 # ==============================================================================
-# CARPETAS ANTIGUAS / OBSOLETAS (NO subir)
+# CARPETAS ANTIGUAS / OBSOLETAS
 # ==============================================================================
-# Pipeline viejo completo (~4.4 GB) y scripts draft originales
 atlas_murcielagos_pipeline_26112025/
 archivos_nuevos/
 
 # ==============================================================================
-# DATOS (NO subir - demasiado grandes / sensibles / reproducibles)
+# DATOS (grandes / sensibles / reproducibles)
 # ==============================================================================
 
-# --- Datos brutos (proporcionados por el grupo de trabajo) ---
-data/raw/**/*.csv
-data/raw/**/*.rds
-data/raw/**/*.RData
-data/raw/**/*.gpkg
-data/raw/**/*.xlsx
-data/raw/**/*.xls
-# Shapefiles (todos sus componentes)
-data/raw/**/*.shp
-data/raw/**/*.dbf
-data/raw/**/*.prj
-data/raw/**/*.shx
-data/raw/**/*.cpg
-data/raw/**/*.sbn
-data/raw/**/*.sbx
-data/raw/**/*.qpj
+# --- Datos brutos ---
+data/raw/
 
 # --- Datos procesados (reproducibles desde raw) ---
 data/processed/
-!data/processed/.gitkeep
+data/processed_2014/
 
 # --- Datos listos para modelado (reproducibles desde processed) ---
 data/modelado_ready/
-!data/modelado_ready/.gitkeep
+data/modelado_ready_2014/
 
 # ==============================================================================
-# OUTPUTS DEL PIPELINE (reproducibles)
+# OUTPUTS DEL PIPELINE (reproducibles - ~3.5 GB)
 # ==============================================================================
-output/modelos/
-output/logs/
-output/figs/
-output/seleccion_variables/variables_json/*.json
-output/seleccion_variables/diagnosticos/
-output/*.png
-output/*.pdf
-output/*.csv
+output/
+output_2014/
+output_shiny/
+
+# --- Symlink dentro de shiny_atlas ---
+shiny_atlas/output_shiny
 
 # ==============================================================================
 # RESULTADOS INTERMEDIOS
@@ -58,7 +42,13 @@ output/*.csv
 resultados/
 
 # ==============================================================================
-# RENV (solo renv.lock y settings van al repo)
+# INFORMES (reproducibles desde .qmd)
+# ==============================================================================
+*.html
+*.qmd
+
+# ==============================================================================
+# RENV (solo renv.lock y renv/settings.json van al repo)
 # ==============================================================================
 renv/library/
 renv/local/

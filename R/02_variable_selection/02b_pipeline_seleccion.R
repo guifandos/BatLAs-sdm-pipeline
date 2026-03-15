@@ -615,6 +615,17 @@ run_pipeline_especie <- function(df, especie, especies_gremios,
 
   message(sprintf("\n=== PIPELINE: %s ===", especie))
 
+  # Fase 0: Excluir variables geometricas de la malla UTM (no ecologicas)
+  VARS_GEOMETRICAS <- c("PERIM_km", "Shape_Area", "Shape_Leng", "Shape_Le_1",
+                         "AREA_km", "Area_km2", "LaLo", "XCENTROIDE", "YCENTROIDE",
+                         "OBJECTID", "FID", "Id")
+  geom_presentes <- intersect(names(df), VARS_GEOMETRICAS)
+  if (length(geom_presentes) > 0) {
+    df <- df[, !names(df) %in% geom_presentes, drop = FALSE]
+    message(sprintf("  FASE 0: Excluidas %d variables geometricas de malla: %s",
+                    length(geom_presentes), paste(geom_presentes, collapse = ", ")))
+  }
+
   # Fase 1: Filtrar variables por gremio ecologico
   f1 <- fase1_preseleccion_gremio(df, especie, especies_gremios, response_col)
   # Fase 2: Eliminar variables con problemas estadisticos basicos
@@ -635,28 +646,43 @@ run_pipeline_especie <- function(df, especie, especies_gremios,
   f6 <- fase6_control_ecologico(f5$data, response_col, f5$var_info, vars_eliminadas_todas)
 
   # Fase 7: Validacion predictiva k-fold (solo si la especie es modelizable)
+  f7 <- list(metrics = NULL)
   if (run_validation && f5$status != "no_modelizar" && nrow(f6$var_info) > 0) {
-    f7 <- fase7_validacion_predictiva(f5$data, response_col, f6$var_info)
-  } else { f7 <- list(metrics = NULL) }
+    f7 <- tryCatch(
+      fase7_validacion_predictiva(f5$data, response_col, f6$var_info),
+      error = function(e) {
+        message(sprintf("  FASE 7: Error en validacion (omitida): %s", e$message))
+        list(metrics = NULL, skipped = TRUE)
+      }
+    )
+  }
 
   # Stability selection (opcional): bootstrap de select07 para robustez
   stability_info <- NULL
   if (isTRUE(CONFIG$seleccion$stability_selection) &&
       f5$status != "no_modelizar" && nrow(f2$var_info) > 2) {
-    message("  Stability selection...")
-    vars_f2 <- setdiff(names(f2$data), response_col)
-    X_stab <- f2$data[, vars_f2, drop = FALSE]
-    y_stab <- f2$data[[response_col]]
-    stability_info <- stability_selection(X_stab, y_stab, f2$var_info,
-                                          n_boot = CONFIG$seleccion$n_boot_stability)
-    message(sprintf("  Stability: %d vars con freq > 0.6",
-                    sum(stability_info$stability_freq > 0.6)))
+    stability_info <- tryCatch({
+      message("  Stability selection...")
+      vars_f2 <- setdiff(names(f2$data), response_col)
+      X_stab <- f2$data[, vars_f2, drop = FALSE]
+      y_stab <- f2$data[[response_col]]
+      res <- stability_selection(X_stab, y_stab, f2$var_info,
+                                 n_boot = CONFIG$seleccion$n_boot_stability)
+      message(sprintf("  Stability: %d vars con freq > 0.6",
+                      sum(res$stability_freq > 0.6)))
+      res
+    }, error = function(e) {
+      message(sprintf("  Stability selection: Error (omitida): %s", e$message))
+      NULL
+    })
   }
 
   # Compilar alertas de todas las fases
   alerts <- unique(c(f5$alerts,
                      if (f4$conflicto_colinealidad_obligatorias) "conflicto_VIF_obligatorias",
-                     f6$alerts))
+                     f6$alerts,
+                     if (is.null(f7$metrics) && run_validation) "validacion_omitida",
+                     if (is.null(stability_info) && isTRUE(CONFIG$seleccion$stability_selection)) "stability_omitida"))
   removed_all <- bind_rows(f2$removed, f3$removed, f4$removed, f5$removed)
 
   # Generar metadata JSON para la especie

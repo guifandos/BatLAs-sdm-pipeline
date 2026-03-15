@@ -54,6 +54,15 @@ if (file.exists(CONFIG$paths$karst_csv)) {
   cat(sprintf("  Columna ID karst normalizada a 'CUADRICULA' (%d IDs unicos)\n",
               n_distinct(karst_raw$CUADRICULA)))
 
+  # Renombrar HISTO_* -> Karst_HISTO_* (los CSVs crudos no traen prefijo)
+  histo_cols_raw <- names(karst_raw)[str_detect(names(karst_raw), "^HISTO_[0-9]")]
+  if (length(histo_cols_raw) > 0) {
+    names(karst_raw)[names(karst_raw) %in% histo_cols_raw] <-
+      paste0("Karst_", histo_cols_raw)
+    cat(sprintf("  Renombradas %d columnas HISTO_* -> Karst_HISTO_*\n",
+                length(histo_cols_raw)))
+  }
+
   # Validar que existen columnas con el patron esperado Karst_HISTO_*
   karst_cols <- names(karst_raw)[str_detect(names(karst_raw), "^Karst_HISTO_")]
   if (length(karst_cols) == 0) {
@@ -77,6 +86,15 @@ if (file.exists(CONFIG$paths$lito_csv)) {
   cat(sprintf("  Columna ID litologia normalizada a 'CUADRICULA' (%d IDs unicos)\n",
               n_distinct(lito_raw$CUADRICULA)))
 
+  # Renombrar HISTO_* -> lito_HISTO_* (los CSVs crudos no traen prefijo)
+  histo_cols_lito_raw <- names(lito_raw)[str_detect(names(lito_raw), "^HISTO_[0-9]")]
+  if (length(histo_cols_lito_raw) > 0) {
+    names(lito_raw)[names(lito_raw) %in% histo_cols_lito_raw] <-
+      paste0("lito_", histo_cols_lito_raw)
+    cat(sprintf("  Renombradas %d columnas HISTO_* -> lito_HISTO_*\n",
+                length(histo_cols_lito_raw)))
+  }
+
   # Validar que existen columnas con el patron esperado lito_HISTO_*
   lito_cols_check <- names(lito_raw)[str_detect(names(lito_raw), "^lito_HISTO_")]
   if (length(lito_cols_check) == 0) {
@@ -91,6 +109,22 @@ if (file.exists(CONFIG$paths$lito_csv)) {
   }
 } else {
   cat("  AVISO: Litologia CSV no encontrado\n")
+}
+
+# --- Deduplicar por CUADRICULA (CSVs crudos pueden tener filas duplicadas) ---
+if (!is.null(karst_raw)) {
+  n_dup_k <- nrow(karst_raw) - n_distinct(karst_raw$CUADRICULA)
+  if (n_dup_k > 0) {
+    karst_raw <- karst_raw %>% distinct(CUADRICULA, .keep_all = TRUE)
+    cat(sprintf("  Karst: eliminadas %d filas duplicadas -> %d filas\n", n_dup_k, nrow(karst_raw)))
+  }
+}
+if (!is.null(lito_raw)) {
+  n_dup_l <- nrow(lito_raw) - n_distinct(lito_raw$CUADRICULA)
+  if (n_dup_l > 0) {
+    lito_raw <- lito_raw %>% distinct(CUADRICULA, .keep_all = TRUE)
+    cat(sprintf("  Lito: eliminadas %d filas duplicadas -> %d filas\n", n_dup_l, nrow(lito_raw)))
+  }
 }
 
 if (is.null(karst_raw) && is.null(lito_raw)) {

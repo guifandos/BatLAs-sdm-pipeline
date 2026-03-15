@@ -10,7 +10,7 @@
 # AUTOR: Guillermo Fandos (gfandos@ucm.es) / UCM
 # ==============================================================================
 
-source("R/00_setup/00_config.R")
+if (!exists("CONFIG")) source("R/00_setup/00_config.R")
 source("R/utils/utils_checkpoints.R")
 source("R/utils/utils_favorabilidad.R")
 source("R/utils/utils_metricas.R")
@@ -70,10 +70,12 @@ modelar_ambiental_sp <- function(sp, datos_pa, grid_data) {
   vars_info <- fromJSON(json_file)
   vars_modelo <- vars_info$variables_finales$name
 
-  # Preparar datos
+  # Preparar datos (columnas de especie tienen prefijo sp_ desde 01g)
+  sp_col <- paste0("sp_", sp)
+  if (!sp_col %in% names(datos_pa)) sp_col <- sp  # fallback sin prefijo
   datos_sp <- datos_pa %>%
     filter(muestreado == 1) %>%
-    select(PA = all_of(sp), all_of(vars_modelo)) %>%
+    select(PA = all_of(sp_col), all_of(vars_modelo)) %>%
     drop_na()
 
   n_pres <- sum(datos_sp$PA == 1)

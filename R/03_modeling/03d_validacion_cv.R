@@ -9,7 +9,7 @@
 # AUTOR: Guillermo Fandos (gfandos@ucm.es) / UCM
 # ==============================================================================
 
-source("R/00_setup/00_config.R")
+if (!exists("CONFIG")) source("R/00_setup/00_config.R")
 source("R/utils/utils_checkpoints.R")
 source("R/utils/utils_favorabilidad.R")
 source("R/utils/utils_metricas.R")
@@ -55,9 +55,11 @@ for (sp in especies) {
   vars_info <- fromJSON(json_file)
   vars_modelo <- vars_info$variables_finales$name
 
+  sp_col <- paste0("sp_", sp)
+  if (!sp_col %in% names(datos_pa)) sp_col <- sp
   datos_sp <- datos_pa %>%
     filter(muestreado == 1) %>%
-    select(PA = all_of(sp), X, Y, all_of(vars_modelo)) %>%
+    select(PA = all_of(sp_col), X, Y, all_of(vars_modelo)) %>%
     drop_na()
 
   n_pres <- sum(datos_sp$PA == 1)
@@ -88,13 +90,17 @@ for (sp in especies) {
       )
       if (is.null(modelo)) next
 
+      # Verificar que test tiene ambos niveles (0 y 1)
+      if (length(unique(datos_test$PA)) < 2) next
+
       pred_prob <- predict(modelo, newdata = datos_test, type = "response")
       pred_fav <- favorabilidad(pred_prob, datos_train$PA)
 
-      metricas_fold <- compute_metrics(datos_test$PA, pred_fav) %>%
-        mutate(Fold = fold, Rep = rep_i)
-
-      resultados <- bind_rows(resultados, metricas_fold)
+      metricas_fold <- tryCatch(
+        compute_metrics(datos_test$PA, pred_fav) %>% mutate(Fold = fold, Rep = rep_i),
+        error = function(e) NULL
+      )
+      if (!is.null(metricas_fold)) resultados <- bind_rows(resultados, metricas_fold)
     }
   }
 

@@ -55,37 +55,41 @@ cat("\n=== 01a: PREPARAR PA POR METODO Y COMPLEJOS ===\n\n")
 
 cat("Cargando presencias desde:", CONFIG$paths$presencias_raw, "\n")
 
-presencias <- tryCatch({
-  # Primer intento: separador coma (estandar internacional)
-  tmp <- read_csv(CONFIG$paths$presencias_raw,
-                  locale = locale(encoding = "latin1"),
-                  show_col_types = FALSE)
-
-  if (ncol(tmp) <= 1) {
-    # Si solo obtenemos 1 columna, el separador real es probablemente ";"
-    # Esto ocurre con CSVs exportados desde Excel en configuraciones regionales
-    # de Espana/Europa continental que usan ";" como delimitador de campo.
-    cat("  -> read_csv produjo 1 columna; reintentando con read_csv2 (sep ';')\n")
-    tmp <- read_csv2(CONFIG$paths$presencias_raw,
-                     locale = locale(encoding = "latin1"),
-                     show_col_types = FALSE)
-  }
-  tmp
-}, error = function(e) {
-  # Si read_csv falla completamente (e.g., error de encoding), probar read_csv2
-  cat("  -> read_csv fallo:", conditionMessage(e), "\n")
-  cat("  -> Reintentando con read_csv2 (sep ';')\n")
-  read_csv2(CONFIG$paths$presencias_raw,
-            locale = locale(encoding = "latin1"),
-            show_col_types = FALSE)
-})
-
-# Limpiar encoding: convertir caracteres latin1 residuales a UTF-8
-# Esto es necesario porque nombres de especies y localidades en espanol
-# contienen tildes, enyes, etc.
-presencias <- presencias %>%
-  mutate(across(where(is.character),
-                ~iconv(., from = "latin1", to = "UTF-8", sub = "")))
+# Auto-deteccion de formato: Excel (.xlsx) vs CSV
+if (str_detect(CONFIG$paths$presencias_raw, "\\.xlsx$")) {
+  # --- EXCEL: usar readxl (encoding UTF-8 nativo) ---
+  suppressPackageStartupMessages(library(readxl))
+  presencias <- read_excel(CONFIG$paths$presencias_raw)
+  cat("  -> Formato Excel detectado\n")
+  # Limpiar encoding (Excel suele ser UTF-8 pero por seguridad)
+  presencias <- presencias %>%
+    mutate(across(where(is.character),
+                  ~iconv(., to = "UTF-8", sub = "")))
+} else {
+  # --- CSV: auto-deteccion de separador (coma vs punto y coma) ---
+  presencias <- tryCatch({
+    tmp <- read_csv(CONFIG$paths$presencias_raw,
+                    locale = locale(encoding = "latin1"),
+                    show_col_types = FALSE)
+    if (ncol(tmp) <= 1) {
+      cat("  -> read_csv produjo 1 columna; reintentando con read_csv2 (sep ';')\n")
+      tmp <- read_csv2(CONFIG$paths$presencias_raw,
+                       locale = locale(encoding = "latin1"),
+                       show_col_types = FALSE)
+    }
+    tmp
+  }, error = function(e) {
+    cat("  -> read_csv fallo:", conditionMessage(e), "\n")
+    cat("  -> Reintentando con read_csv2 (sep ';')\n")
+    read_csv2(CONFIG$paths$presencias_raw,
+              locale = locale(encoding = "latin1"),
+              show_col_types = FALSE)
+  })
+  # Limpiar encoding latin1 -> UTF-8
+  presencias <- presencias %>%
+    mutate(across(where(is.character),
+                  ~iconv(., from = "latin1", to = "UTF-8", sub = "")))
+}
 
 cat("Registros cargados:", nrow(presencias), "\n")
 cat("Columnas:", ncol(presencias), "\n")
@@ -251,6 +255,59 @@ presencias <- presencias %>%
 n_eliminados <- n_antes - nrow(presencias)
 cat("Registros tras filtrar Canarias:", nrow(presencias),
     "(eliminados:", n_eliminados, ")\n\n")
+
+
+# ==============================================================================
+# 4b. FILTRO TEMPORAL (si CONFIG$datos$anio_min no es NULL)
+# ==============================================================================
+# Permite restringir el analisis a datos recientes (e.g., >= 2014).
+# La columna 'año' debe existir en los datos crudos.
+# ------------------------------------------------------------------------------
+
+if (!is.null(CONFIG$datos$anio_min)) {
+
+  # Auto-deteccion de columna de año
+  candidatos_anio <- c("año", "anio", "year", "ano")
+  col_anio <- NULL
+  for (cand in candidatos_anio) {
+    if (cand %in% names(presencias)) {
+      col_anio <- cand
+      break
+    }
+  }
+
+  if (is.null(col_anio)) {
+    # Intentar extraer de columna fecha
+    candidatos_fecha <- c("fecha", "date", "FECHA")
+    col_fecha <- NULL
+    for (cand in candidatos_fecha) {
+      if (cand %in% names(presencias)) {
+        col_fecha <- cand
+        break
+      }
+    }
+    if (!is.null(col_fecha)) {
+      cat("  Columna 'año' no encontrada; extrayendo de '", col_fecha, "'\n")
+      presencias$año <- as.integer(format(presencias[[col_fecha]], "%Y"))
+      col_anio <- "año"
+    } else {
+      stop("Filtro temporal activo pero no se encontro columna de año ni fecha.")
+    }
+  }
+
+  n_antes_anio <- nrow(presencias)
+  n_sin_anio <- sum(is.na(presencias[[col_anio]]))
+
+  presencias <- presencias %>%
+    filter(!is.na(.data[[col_anio]]),
+           .data[[col_anio]] >= CONFIG$datos$anio_min)
+
+  n_filtrados <- n_antes_anio - nrow(presencias)
+  cat(sprintf("FILTRO TEMPORAL: año >= %d\n", CONFIG$datos$anio_min))
+  cat(sprintf("  Registros antes: %d (sin año: %d)\n", n_antes_anio, n_sin_anio))
+  cat(sprintf("  Registros eliminados: %d\n", n_filtrados))
+  cat(sprintf("  Registros restantes: %d\n\n", nrow(presencias)))
+}
 
 
 # ==============================================================================

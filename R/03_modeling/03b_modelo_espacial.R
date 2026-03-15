@@ -9,7 +9,7 @@
 # AUTOR: Guillermo Fandos (gfandos@ucm.es) / UCM
 # ==============================================================================
 
-source("R/00_setup/00_config.R")
+if (!exists("CONFIG")) source("R/00_setup/00_config.R")
 source("R/utils/utils_checkpoints.R")
 source("R/utils/utils_favorabilidad.R")
 source("R/utils/utils_metricas.R")
@@ -85,10 +85,12 @@ modelar_espacial_sp <- function(sp, datos_pa, grid_data) {
     return(list(status = "skip", sp = sp))
   }
 
-  # Preparar datos con coordenadas
+  # Preparar datos con coordenadas (columnas sp_ desde 01g)
+  sp_col <- paste0("sp_", sp)
+  if (!sp_col %in% names(datos_pa)) sp_col <- sp  # fallback sin prefijo
   datos_sp <- datos_pa %>%
     filter(muestreado == 1) %>%
-    select(PA = all_of(sp), X, Y) %>%
+    select(PA = all_of(sp_col), X, Y) %>%
     drop_na()
 
   n_pres <- sum(datos_sp$PA == 1)

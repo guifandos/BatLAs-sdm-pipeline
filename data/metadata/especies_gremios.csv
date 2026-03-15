@@ -4,31 +4,31 @@ Rhinolophus hipposideros,Cavernicola,Forestal,TRUE,,CF unica 105-112kHz
 Rhinolophus euryale,Cavernicola,Forestal,TRUE,,Solapamiento R.mehelyi
 Rhinolophus mehelyi,Cavernicola,Forestal,TRUE,,Solapamiento R.euryale
 Miniopterus schreibersii,Cavernicola,Generalista,TRUE,,Colonias masivas
-Myotis myotis,Cavernicola,Forestal,TRUE,Myotis_grande,FM identica M.blythii
-Myotis blythii,Cavernicola,Pastizal,TRUE,Myotis_grande,FM identica M.myotis
+Myotis myotis,Cavernicola,Forestal,TRUE,,Distinguible en mano; filtrar registros acusticos dudosos
+Myotis blythii,Cavernicola,Pastizal,TRUE,,Distinguible en mano; habitat de caza diferente
 Myotis emarginatus,Cavernicola,Mosaico,TRUE,,Escotadura diagnostica
-Myotis escalerai,Cavernicola,Forestal,TRUE,Myotis_nattereri,Endemica. Similar M.crypticus
-Myotis crypticus,Cavernicola,Forestal,TRUE,Myotis_nattereri,Similar M.escalerai
-Myotis daubentonii,Fisuricola,Ripario,TRUE,,Patas grandes. Agua
+Myotis escalerai,Cavernicola,Forestal,TRUE,,Endemica iberica. Revisar_N (solo capturas confirmadas)
+Myotis crypticus,Cavernicola,Forestal,TRUE,,Especie criptica reciente. Revisar_N
+Myotis daubentonii,Generalista,Ripario,TRUE,,Plastico en refugio (fisuras+cuevas+edificios+arboles)
 Myotis capaccinii,Cavernicola,Ripario,TRUE,,Cuevas cerca agua
 Myotis bechsteinii,Arboricola,Forestal,TRUE,,FM indetectable
-Myotis mystacinus,Fisuricola,Forestal,TRUE,Myotis_pequeno,Complejo 3 especies
-Myotis alcathoe,Arboricola,Forestal,TRUE,Myotis_pequeno,Indistinguible mystacinus
+Myotis mystacinus,Generalista,Forestal,TRUE,,Muy antropofilo en Peninsula (Galicia: construcciones)
+Myotis alcathoe,Arboricola,Forestal,TRUE,,Habitats distintos a mystacinus. Revisar_N
 Nyctalus leisleri,Arboricola,Forestal,TRUE,,Separable de noctula
-Nyctalus noctula,Arboricola,Forestal,TRUE,Nyctalus_spp,Solapamiento lasiopterus
-Nyctalus lasiopterus,Arboricola,Forestal,TRUE,Nyctalus_spp,Muy rara. Mayor europeo
+Nyctalus noctula,Arboricola,Forestal,TRUE,,N suficiente; separable acusticamente
+Nyctalus lasiopterus,Arboricola,Forestal,TRUE,,Muy rara. Revisar_N (probablemente insuficiente)
 Barbastella barbastellus,Arboricola,Forestal,TRUE,,Dehesas. Sotobosque
-Plecotus auritus,Arboricola,Forestal,TRUE,Plecotus_spp,FM indetectable
-Plecotus austriacus,Antropofilo,Mosaico,TRUE,Plecotus_spp,Mas antropofila
-Plecotus macrobullaris,Arboricola,Forestal,TRUE,Plecotus_spp,Montanosa
-Plecotus teneriffae,Arboricola,Forestal,FALSE,,SOLO 15 cuadriculas
-Pipistrellus pipistrellus,Antropofilo,Generalista,TRUE,,Muy comun
-Pipistrellus pygmaeus,Antropofilo,Ripario,TRUE,,Frecuencia mas alta genero
-Pipistrellus kuhlii,Antropofilo,Generalista,TRUE,,Termofila
+Plecotus auritus,Arboricola,Forestal,TRUE,,FM indetectable; cria en desvanes rurales
+Plecotus austriacus,Generalista,Mosaico,TRUE,,Plastico en refugio (fisuras+cuevas+edificios)
+Plecotus macrobullaris,Arboricola,Forestal,FALSE,,Solo ~15 cuadriculas. Datos insuficientes
+Plecotus teneriffae,Arboricola,Forestal,FALSE,,SOLO 15 cuadriculas Canarias
+Pipistrellus pipistrellus,Generalista,Generalista,TRUE,,Muy comun. Plastico en refugio
+Pipistrellus pygmaeus,Generalista,Ripario,TRUE,,Mas ligada a riberas en norte
+Pipistrellus kuhlii,Generalista,Generalista,TRUE,,Termofila. Muy plastica en refugio
 Pipistrellus nathusii,Arboricola,Ripario,TRUE,,Migradora. Rara
-Pipistrellus maderensis,Antropofilo,Generalista,FALSE,,Criptica. Solo genetica
-Eptesicus serotinus,Antropofilo,Generalista,TRUE,,Muy plastico
-Eptesicus isabellinus,Fisuricola,Generalista,TRUE,,Montana >800m
+Pipistrellus maderensis,Generalista,Generalista,FALSE,,Criptica. Solo genetica. Revisar_N
+Cnephaeus serotinus,Generalista,Generalista,TRUE,,Muy plastico en refugio (antes Eptesicus serotinus)
+Cnephaeus isabellinus,Fisuricola,Generalista,TRUE,,Montana >800m (antes Eptesicus isabellinus)
 Hypsugo savii,Fisuricola,Generalista,TRUE,,Termofila
-Tadarida teniotis,Rupicola,Aereo,TRUE,,AUDIBLE 10-14kHz
+Tadarida teniotis,Fisuricola,Aereo,TRUE,,Roquedos + construcciones. AUDIBLE 10-14kHz
 Vespertilio murinus,Fisuricola,Generalista,TRUE,,Rara (Pirineos)

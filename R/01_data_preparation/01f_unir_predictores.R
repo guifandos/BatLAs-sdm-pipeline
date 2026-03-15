@@ -89,10 +89,15 @@ if (length(dup_cols) > 0) {
 if (!is.null(bal)) {
   cat("Integrando Baleares...\n")
   # Alinear columnas: bal puede no tener variables geo
+  # Usar NA del tipo correcto para evitar errores en bind_rows
   cols_faltantes_bal <- setdiff(names(ec_geo), names(bal))
   for (col in cols_faltantes_bal) {
     if (col != "CUADRICULA") {
-      bal[[col]] <- NA_real_
+      if (is.character(ec_geo[[col]])) {
+        bal[[col]] <- NA_character_
+      } else {
+        bal[[col]] <- NA_real_
+      }
     }
   }
   # Seleccionar solo columnas que existen en ec_geo
@@ -146,6 +151,15 @@ if (n_nan > 0) {
 
 cat(sprintf("\nPredictores finales (escalados): %d cuadriculas x %d variables\n",
             nrow(predictores_union), ncol(predictores_union) - 1))
+
+# --- 4b. Alias X/Y para coordenadas (compatibilidad con 03b modelo espacial) ---
+# El Excel SEO usa La (latitud) y Lo (longitud). Los scripts de modelado
+# espacial (03b) esperan columnas X e Y. Convencion: Lo=X, La=Y.
+if ("Lo" %in% names(predictores_union) && !"X" %in% names(predictores_union)) {
+  predictores_union$X <- predictores_union$Lo  # Longitud = eje X
+  predictores_union$Y <- predictores_union$La  # Latitud = eje Y
+  cat("  Alias creados: Lo -> X, La -> Y\n")
+}
 
 # --- 5. Version con geometria (sf) ---
 n_malla <- nrow(malla_union)

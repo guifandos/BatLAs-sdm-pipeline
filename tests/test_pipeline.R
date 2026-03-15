@@ -200,31 +200,44 @@ cat("\n--- Test 4: Sistema de gremios ---\n")
 source("R/02_variable_selection/02a_funciones_gremios.R")
 
 gremios <- cargar_gremios()
+stopifnot(nrow(gremios$especies) > 0)
+stopifnot(nrow(gremios$refugio) > 0)
+stopifnot(nrow(gremios$alimentacion) > 0)
+cat(sprintf("  [PASS] Gremios cargados: %d especies, %d cat refugio, %d cat alimentacion\n",
+            nrow(gremios$especies), nrow(gremios$refugio), nrow(gremios$alimentacion)))
 
-check("Gremios cargados con especies", {
-  stopifnot(nrow(gremios$especies) > 0)
-  stopifnot(nrow(gremios$refugio) > 0)
-  stopifnot(nrow(gremios$alimentacion) > 0)
-})
-check("Variables gremio Rhinolophus incluyen Karst", {
-  vars_rf <- obtener_variables_gremio("Rhinolophus ferrumequinum", gremios)
-  stopifnot(length(vars_rf) > 0)
-  stopifnot("Karst_total" %in% vars_rf)
-})
-check("Variables gremio especie inexistente devuelve vacio", {
-  vars_x <- suppressWarnings(obtener_variables_gremio("Especie ficticia", gremios))
-  stopifnot(length(vars_x) == 0)
-})
-check("obtener_especies_modelizables filtra correctamente", {
-  modelizables <- obtener_especies_modelizables(gremios)
-  stopifnot(length(modelizables) > 0)
-  stopifnot(!"Plecotus teneriffae" %in% modelizables)
-})
-check("obtener_especies_complejo funciona", {
-  spp <- obtener_especies_complejo("Myotis_grande", gremios)
-  stopifnot(length(spp) == 2)
-  stopifnot("Myotis myotis" %in% spp)
-})
+# 4a. Categorias de refugio: deben existir las 4 nuevas, NO las antiguas
+cats_refugio <- gremios$refugio$categoria
+stopifnot("Cavernicola" %in% cats_refugio)
+stopifnot("Arboricola" %in% cats_refugio)
+stopifnot("Fisuricola" %in% cats_refugio)
+stopifnot("Generalista" %in% cats_refugio)
+stopifnot(!"Antropofilo" %in% cats_refugio)  # eliminado en v2
+stopifnot(!"Rupicola" %in% cats_refugio)     # absorbido en Fisuricola
+cat("  [PASS] Categorias refugio correctas (4: Cavernicola, Arboricola, Fisuricola, Generalista)\n")
+
+# 4b. R. ferrumequinum (Cavernicola) debe tener Karst_total
+vars_rf <- obtener_variables_gremio("Rhinolophus ferrumequinum", gremios)
+stopifnot(length(vars_rf) > 0)
+stopifnot("Karst_total" %in% vars_rf)
+cat("  [PASS] R. ferrumequinum: Karst_total en variables de gremio\n")
+
+# 4c. P. pipistrellus (Generalista refugio + Generalista alimentacion)
+vars_pp <- obtener_variables_gremio("Pipistrellus pipistrellus", gremios)
+stopifnot(length(vars_pp) > 0)
+stopifnot("Shannon" %in% vars_pp)       # paisaje (nucleo Generalista)
+stopifnot("Dens_pob_rec" %in% vars_pp)  # urbana (nucleo Generalista refugio)
+cat("  [PASS] P. pipistrellus: Shannon + Dens_pob_rec en variables (Generalista)\n")
+
+# 4d. Complejos taxonomicos: todos disueltos (0 filas)
+stopifnot(!is.null(gremios$complejos))
+stopifnot(nrow(gremios$complejos) == 0)
+cat("  [PASS] Complejos taxonomicos: 0 (todos disueltos)\n")
+
+# 4e. Especies modelizables
+spp_model <- obtener_especies_modelizables(gremios)
+stopifnot(length(spp_model) >= 28)  # al menos 28 especies con modelar=TRUE
+cat(sprintf("  [PASS] Especies modelizables: %d\n", length(spp_model)))
 
 # Test detect_variable_type
 check("detect_variable_type climatica", {

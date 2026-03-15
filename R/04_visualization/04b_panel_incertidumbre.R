@@ -7,7 +7,7 @@
 # AUTOR: Guillermo Fandos (gfandos@ucm.es) / UCM
 # ==============================================================================
 
-source("R/00_setup/00_config.R")
+if (!exists("CONFIG")) source("R/00_setup/00_config.R")
 source("R/utils/utils_mapas.R")
 
 suppressPackageStartupMessages({

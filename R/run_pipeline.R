@@ -314,10 +314,14 @@ cat(sprintf("Output: %s\n\n", CONFIG$output$base))
 # Contar especies con pipeline completamente terminado (con mapas generados)
 if (dir.exists(CONFIG$output$base)) {
   dirs_sp <- list.dirs(CONFIG$output$base, recursive = FALSE)
-  n_completadas <- sum(sapply(dirs_sp, function(d) {
-    file.exists(file.path(d, "mapas", "checkpoint_mapas.txt"))
-  }))
-  cat(sprintf("Especies con pipeline completo: %d\n", n_completadas))
+  if (length(dirs_sp) > 0) {
+    n_completadas <- sum(vapply(dirs_sp, function(d) {
+      file.exists(file.path(d, "mapas", "checkpoint_mapas.txt"))
+    }, logical(1)))
+    cat(sprintf("Especies con pipeline completo: %d\n", n_completadas))
+  } else {
+    cat("Especies con pipeline completo: 0 (sin directorios de especie)\n")
+  }
 }
 
 # Resumen del log de ejecucion

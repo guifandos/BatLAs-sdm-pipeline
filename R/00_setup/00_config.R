@@ -28,7 +28,7 @@ CONFIG <- list(
     # variables ambientales (Excel SEO) y geologia (CSVs).
 
     # Presencias originales: CSV con coordenadas UTM, especie, metodo
-    presencias_raw = "data/raw/presencias/_final_coords_UTM_editada_20250929.csv",
+    presencias_raw = "data/raw/presencias/_final_coords_UTM_editada_20260219_v2_modelos.xlsx",
 
     # Directorio de variables ambientales (resoluciones 10x10)
     variables_dir = "data/raw/variables",
@@ -87,7 +87,7 @@ CONFIG <- list(
     # Compatibilidad con Fase 2+: formato ancho unificado (todos los metodos)
     pa_data = "data/processed/PAxENV_all_metodos.rds",
     esfuerzo = "data/processed/esfuerzo_por_metodo.rds",
-    grid_predictores = "data/processed/predictores_all.rds",
+    grid_predictores = "data/processed/predictores_SEO_GEO.rds",
 
     # --- METADATOS (versionados en Git) ---
     # CSVs de clasificacion ecologica de especies y variables.
@@ -125,7 +125,7 @@ CONFIG <- list(
   # Se usa hold-out (train/test split) + bootstrap para estimar incertidumbre.
   ambiental = list(
     prop_train = 0.70,       # Proporcion de datos para entrenamiento (70/30 split)
-    n_bootstrap = 500,       # Iteraciones de bootstrap (produccion: 500; pruebas: 50)
+    n_bootstrap = 200,       # Iteraciones de bootstrap (produccion: 200; pruebas: 50)
     min_presencias = 30,     # Minimo de presencias para ajustar un modelo
     min_ausencias = 30,      # Minimo de ausencias para balanceo
     seed = 123               # Semilla para reproducibilidad
@@ -141,7 +141,7 @@ CONFIG <- list(
     usar_residuos = FALSE,  # TRUE: modelar residuos del GLM ambiental (evita doble conteo
                             #   ambiental en fuzzy); FALSE: modelar PA directa.
                             #   Ver 03b_bis_espacial_residuos.R para justificacion cientifica.
-    n_bootstrap = 500,      # Iteraciones de bootstrap
+    n_bootstrap = 200,      # Iteraciones de bootstrap (produccion: 200; pruebas: 50)
     seed = 123
   ),
 
@@ -230,24 +230,31 @@ CONFIG <- list(
 
   especies = list(
     # NULL = procesar todas las disponibles en CSV de gremios
-    piloto = NULL,
+    piloto = NULL,  # NULL = todas las especies modelizables
     # Ejemplo para prueba rapida (descomentar):
     # piloto = c("Rhinolophus ferrumequinum", "Myotis myotis"),
     # Especies a excluir explicitamente del pipeline
     excluir = c()
   ),
 
+  # --- FILTRO TEMPORAL ---
+  # Si anio_min no es NULL, solo se usan presencias con año >= anio_min.
+  # Util para analisis de sensibilidad temporal o para excluir datos historicos.
+  datos = list(
+    anio_min = NULL           # NULL = sin filtro; e.g. 2014 para datos desde 2014
+  ),
+
   # Control de ejecucion: activa/desactiva fases individuales.
   # force_rerun = TRUE recalcula especies ya procesadas.
   control = list(
-    force_rerun = FALSE,
+    force_rerun = TRUE,     # TRUE para recalcular todo (fix vars geometricas)
     ejecutar = list(
       preparacion_datos = FALSE,     # Fase 0: preparacion de datos brutos
-      seleccion_variables = FALSE,   # Fase 1: seleccion de variables (7 fases)
+      seleccion_variables = TRUE,    # Fase 1: seleccion de variables (7 fases)
       modelo_ambiental = TRUE,       # Fase 2: GLM + favorabilidad ambiental
       modelo_espacial = TRUE,        # Fase 3: GAM/GLM espacial
       interseccion = TRUE,           # Fase 4: interseccion fuzzy
-      validacion = FALSE,            # Fase 5: validacion cruzada espacial
+      validacion = TRUE,             # Fase 5: validacion cruzada espacial
       incertidumbre = TRUE,          # Fase 6: indice de incertidumbre
       mapas = TRUE,                  # Fase 7: mapas del atlas
       qa_mapas = FALSE               # Subfase 0h: mapas de chequeo (QA)

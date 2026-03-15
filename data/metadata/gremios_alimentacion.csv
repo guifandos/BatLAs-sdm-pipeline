@@ -1,7 +1,7 @@
 categoria,variables_prioritarias,descripcion
-Forestal,"CLC_bosques,CLC_mosaico,Lito_diversidad",Caza en ambientes forestales cerrados
-Ripario,"CLC_acuatico,Bio12,Slope_slope_mean",Caza sobre o cerca de cuerpos de agua
-Generalista,"CLC_mosaico,CLC_bosques,CLC_pastizal",Caza en multiples habitats sin especializacion
-Mosaico,"CLC_cultivo_lenoso,CLC_mosaico,CLC_cultivo_intensivo",Caza en paisajes agricolas heterogeneos
-Pastizal,"CLC_pastizal,CLC_cultivo_intensivo",Caza en areas abiertas y pastizales
-Aereo,"SRTM_Alt_mean,CLC_pastizal,Slope_slope_mean",Caza en vuelo alto sobre areas abiertas
+Forestal,"C_forest_total,C_forest_cadu,Shannon",Caza en ambientes forestales cerrados
+Ripario,"Masas_agua,Riberas_arb,C_amb_acuat",Caza sobre o cerca de cuerpos de agua
+Generalista,"Shannon,C_forest_total,Herb_ralos",Caza en multiples habitats sin especializacion
+Mosaico,"Olivar,Mosaico_agri,Cul_herb",Caza en paisajes agricolas heterogeneos
+Pastizal,"Herb_ralos,Herb_altos,Cul_herb",Caza en areas abiertas y pastizales
+Aereo,"Alt_rec,Herb_ralos,Slop_rec",Caza en vuelo alto sobre areas abiertas

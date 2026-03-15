@@ -13,10 +13,10 @@
 #   0 = excluida a priori
 #
 # Sistema de clasificacion de variables:
-#   - Se mantienen vectores hardcoded con nombres CONOCIDOS (CLC_, Karst_, Lito_,
-#     y nombres comunes del Excel SEO).
-#   - Se anade detect_variable_type() con pattern matching regex para clasificar
-#     CUALQUIER nombre de variable, incluyendo los que no estan en los vectores.
+#   - Vectores hardcoded con nombres REALES del Excel SEO (Variables_EC.xlsx,
+#     Variables_BAL.xlsx) y de los CSVs de geologia (Karst, Litologia).
+#   - detect_variable_type() con pattern matching regex como fallback para
+#     clasificar variables nuevas o con nombres no previstos.
 #   - annotate_variables_by_guild() usa PRIMERO los vectores, y LUEGO fallback
 #     al pattern matching para variables no reconocidas.
 #
@@ -30,77 +30,108 @@ suppressPackageStartupMessages(library(tidyverse))
 cat("=== CARGANDO SISTEMA DE GREMIOS ===\n\n")
 
 # ==============================================================================
-# CATEGORIAS DE VARIABLES (referencia con nombres conocidos)
+# CATEGORIAS DE VARIABLES (nombres reales del Excel SEO + geologia)
 # ==============================================================================
-# Estos vectores contienen nombres REALES que sabemos que existen en nuestros
-# datos (del Excel SEO, CORINE, geologia). Sirven como primera capa de
-# clasificacion. Variables que no aparezcan aqui seran clasificadas por
-# detect_variable_type() usando pattern matching.
+# Estos vectores contienen nombres EXACTOS que existen en los datos:
+#   - Variables_EC.xlsx / Variables_BAL.xlsx (152/150 columnas de la SEO)
+#   - CSVs de geologia procesados por 01e (Karst_*, Lito_*)
+# No se incluyen variables CORINE (CLC_*) porque los datos brutos de la SEO
+# usan su propia nomenclatura de coberturas, no codigos CLC.
+# Variables que no aparezcan aqui se clasifican por detect_variable_type().
 # ==============================================================================
 
 # --- Climaticas (base, siempre prioridad >= 3) ---
-# Incluye: bioclimaticas (bio1-bio19 del WorldClim), temperaturas estacionales
-# del Excel SEO (T, TAut, TSpr, TSum, TWin, TJan, TJul, Tn, Tx),
-# precipitaciones estacionales (P, PAut, PSpr, PSum, PWin),
-# dias con precipitacion (DP01, DP1, DP10, DP30),
-# dias con helada/calor (DTN0, DTN20, DTX25),
-# y otros indices climaticos.
+# Temperaturas medias y estacionales (T, TAut..TWin, TJan, TJul),
+# temperaturas minimas/maximas (Tn*, Tx*),
+# precipitaciones (P, PAut..PWin),
+# dias con precipitacion umbral (DP01, DP1, DP10, DP30 + estacionales),
+# dias con helada/calor (DTN0, DTN20, DTX25 + estacionales),
+# radiacion solar (SID = duracion insolacion, SIS = intensidad radiacion).
 clima_vars <- c(
-  # WorldClim bioclimaticas
-  "bio1", "bio2", "bio3", "bio4", "bio5", "bio6", "bio7",
-  "bio8", "bio9", "bio10", "bio11", "bio12", "bio13", "bio14",
-  "bio15", "bio16", "bio17", "bio18", "bio19",
-  # Temperaturas del Excel SEO
-  "T", "TAut", "TSpr", "TSum", "TWin", "TJan", "TJul", "Tn", "Tx",
-  # Precipitaciones del Excel SEO
+  # Temperaturas medias (anual + estacionales)
+  "T", "TAut", "TSpr", "TSum", "TWin", "TJan", "TJul",
+  # Temperaturas minimas (anual + estacionales)
+  "Tn", "TnAut", "TnJan", "TnJul", "TnSpr", "TnSum", "TnWin",
+  # Temperaturas maximas (anual + estacionales)
+  "Tx", "TxAut", "TxJan", "TxJul", "TxSpr", "TxSum", "TxWin",
+  # Precipitaciones (anual + estacionales)
   "P", "PAut", "PSpr", "PSum", "PWin",
-  # Dias con precipitacion umbral
-  "DP01", "DP1", "DP10", "DP30",
-  # Dias con temperatura umbral (heladas, calor)
-  "DTN0", "DTN20", "DTX25",
-  # Indices climaticos genericos
-  "temp_media", "prec_anual", "aridez", "PET", "ETP",
-  "deficit_hidrico", "continentalidad"
+  # Dias con precipitacion >= umbral (anual + estacionales)
+  "DP01", "DP01Aut", "DP01Spr", "DP01Sum", "DP01Win",
+  "DP1", "DP1Aut", "DP1Spr", "DP1Sum", "DP1Win",
+  "DP10", "DP10Aut", "DP10Spr", "DP10Sum", "DP10Win",
+  "DP30", "DP30Aut", "DP30Spr", "DP30Sum", "DP30Win",
+  # Dias con temperatura umbral (heladas, calor) (anual + estacionales)
+  "DTN0", "DTN0Aut", "DTN0Spr", "DTN0Sum", "DTN0Win",
+  "DTN20", "DTN20Aut",
+  "DTX25", "DTX25Aut", "DTX25Spr", "DTX25Sum", "DTX25Win",
+  # Radiacion solar: duracion de insolacion (anual + estacionales)
+  "SID", "SIDAut", "SIDSpr", "SIDSum", "SIDWin",
+  # Radiacion solar: intensidad (anual + estacionales)
+  "SIS", "SISAut", "SISSpr", "SISSum", "SISWin",
+  # Sequia otonal (duracion)
+  "DAut_rec"
 )
 
 # --- Topograficas ---
-# Incluye variables de relieve del Excel SEO (Alt_rec, Slop_rec)
-# y variables derivadas del MDT (pendiente, orientacion, rugosidad, etc.)
+# Variables del Excel SEO con sufijo _rec (reclasificadas) relacionadas con
+# relieve, energia y balance hidrico.
 topo_vars <- c(
-  # Del Excel SEO
-  "Alt_rec", "Slop_rec",
-  # Variables topograficas genericas/derivadas del MDT
-  "altitud", "altitud_media", "altitud_sd", "pendiente",
-  "pendiente_media", "orientacion", "rugosidad", "TRI", "TWI",
-  "curvatura", "dist_costa",
-  # Variables SRTM o radiacion
-  "SRTM", "RA_anual", "WE_anual", "SE_anual"
+  # Del Excel SEO (recodificadas)
+  "Alt_rec",                # Altitud media
+  "Slop_rec",               # Pendiente media
+  "RA_rec",                 # Radiacion anual
+  "ETP_rec",                # Evapotranspiracion potencial
+  "ETR_rec",                # Evapotranspiracion real
+  "WE_rec",                 # Water excess (excedente hidrico)
+  "SE_rec",                 # Solar energy
+  "CTI"                     # Compound Topographic Index (humedad topografica)
 )
 
 # --- Forestales ---
-# CLC_bosques viene de utils_corine.R. Las demas son variables de
-# estructura forestal que pueden venir del Excel o fuentes adicionales.
-# Incluye nombres que aparecian en versiones previas del PAxENV.
+# Tipos de bosque del Excel SEO: abundancia (_ab) y densidad (_den/_dens)
+# por especie arborea, mas indices forestales compuestos (C_forest_*).
 forest_vars <- c(
-  # CORINE
-  "CLC_bosques",
-  # Indices de vegetacion
-  "NDVI", "NDVI_medio", "NDVI_max",
-  # Estructura forestal
-  "cobertura_arborea", "densidad_arbolado", "altura_arbolado",
-  "biomasa_forestal", "diversidad_forestal", "fcc", "vol_madera",
-  # Tipos de bosque (si existen como columnas individuales)
-  "Pina", "Haya", "Cast", "Chopo", "Roble", "Fres",
-  "Enc_", "Planif", "Euca", "Pal", "Lauri",
-  "C_forest", "biomas"
+  # Tipos de bosque: pinos
+  "Pina_abe_ab", "Pina_abe_dens",
+  # Hayas
+  "Haya_ab", "Haya_den",
+  # Castano
+  "Cast_ab", "Cast_den",
+  # Chopos
+  "Chopo_ab", "Chopo_den",
+  # Robles
+  "Roble_ab", "Roble_den",
+  # Fresnos
+  "Fres_ab", "Fres_den",
+  # Encinas y alcornoques
+  "Enc_alq_ab", "Enc_alq_den",
+  # Planifolia (caducifolio)
+  "Planif_ab", "Planif_den",
+  # Planifolia + coniferas
+  "Plani_con_ab", "Plani_con_den",
+  # Otros tipos
+  "Euca",                   # Eucalipto
+  "Pal",                    # Palmeras
+  "Lauri_motver",           # Laurisilva y monteverde
+  "Ene_sab",                # Enebros y sabinas
+  # Indices forestales compuestos
+  "C_forest_total",         # Cobertura forestal total
+  "C_forest_den",           # Densidad forestal
+  "C_forest_ab",            # Abundancia forestal
+  "C_forest_conif",         # Cobertura coniferas
+  "C_forest_cadu",          # Cobertura caducifolias
+  "C_forest_enci",          # Cobertura encinar
+  "C_forest_mixta"          # Cobertura bosque mixto
 )
 
 # --- Roquedo y geologia ---
-# Variables de utils_geologia.R (Karst_, Lito_) y utils_pca_litologia.R (Lito_PC).
-# CLC_rupicola viene de utils_corine.R (roquedos y cantiles).
+# Roquedos del Excel SEO + variables derivadas de geologia (Karst, Litologia)
+# procesadas por 01e_procesar_geologia.R
 rock_vars <- c(
-  # CORINE: roquedos
-  "CLC_rupicola",
+  # Del Excel SEO
+  "Roquedos",               # Proporcion de roquedos
+  "Arenales",               # Proporcion de arenales
   # Karst (de utils_geologia.R)
   "Karst_principal", "Karst_secundario", "Karst_total",
   # Litologia agrupada (de utils_geologia.R)
@@ -113,71 +144,79 @@ rock_vars <- c(
 )
 
 # --- Acuaticas ---
-# CLC_acuatico viene de utils_corine.R. Las demas pueden venir del Excel SEO
-# o de fuentes hidrograficas adicionales.
+# Variables del Excel SEO relacionadas con masas de agua y riberas.
 water_vars <- c(
-  # CORINE
-  "CLC_acuatico",
-  # Del Excel SEO o fuentes hidrograficas
-  "dist_rio", "dist_rios", "dist_agua", "densidad_rios", "densid_rios",
-  "longitud_rios", "orden_strahler", "caudal_medio", "caudal",
-  "humedales_pct", "humedal",
-  # Nombres posibles del Excel
-
-  "Masas_agua", "Riberas", "LamArt", "AguEst"
+  # Del Excel SEO
+  "Masas_agua",             # Superficie de masas de agua
+  "Riberas_arb",            # Riberas arboladas
+  "Riberas_desarb",         # Riberas desarboladas
+  "C_amb_acuat"             # Cobertura de ambientes acuaticos
 )
 
 # --- Urbanas/antropicas ---
-# CLC_urbano viene de utils_corine.R. Las demas son variables de presion
-# antropica que pueden venir del Excel o fuentes adicionales.
+# Variables del Excel SEO de presion antropica y nucleos urbanos.
 urban_vars <- c(
-  # CORINE
-  "CLC_urbano",
-  # Del Excel SEO o fuentes de presion antropica
-  "Ciudad", "Pueblo", "Urbaniz", "Otros_urba", "Carreteras",
-  "dist_nucleos", "dist_nucleo", "densidad_poblacion", "densid_pobl",
-  "luz_nocturna", "luz_noct", "dist_carreteras", "infraestructuras",
-  "human_footprint", "Area_degrad"
+  # Del Excel SEO
+  "Ciudad",                 # Superficie de ciudades
+  "Pueblo",                 # Superficie de pueblos
+  "Urbanizacion",           # Superficie de urbanizaciones
+  "Otros_urba",             # Otros usos urbanos
+  "Carreteras",             # Densidad de carreteras
+  "Area_degradadas",        # Areas degradadas
+  "Dens_pob_rec",           # Densidad de poblacion (recodificada)
+  "U500_rec",               # Proximidad a nucleos >500 hab
+  "U100_rec",               # Proximidad a nucleos >100 hab
+  "C_amb_urbani"            # Cobertura de ambientes urbanizados
 )
 
 # --- Paisaje/heterogeneidad ---
-# Variables de estructura y diversidad del paisaje. CLC_mosaico, CLC_pastizal,
-# CLC_cultivo_lenoso, CLC_cultivo_intensivo, CLC_perturbacion_costera vienen
-# de utils_corine.R. Shannon y Comple_veg pueden venir del Excel SEO.
+# Variables del Excel SEO de diversidad de paisaje, cultivos, matorral
+# y pastizales. Incluye indices de diversidad (Shannon, Comple_veg).
 landscape_vars <- c(
-  # CORINE
-  "CLC_mosaico", "CLC_pastizal", "CLC_cultivo_lenoso",
-  "CLC_cultivo_intensivo", "CLC_perturbacion_costera",
-  # Del Excel SEO
-  "Shannon", "Comple_veg",
-  # Variables de paisaje genericas
-  "diversidad_shannon", "n_parches", "edge_density", "fragmentacion",
-  "Mosaico_agri", "Olivar", "Vid", "Frutales",
-  # Cultivos y vegetacion abierta
-  "Herb_", "Mat_", "Ene_sab", "Deforest"
+  # Indices de diversidad de paisaje
+  "Shannon",                # Indice de Shannon de diversidad de coberturas
+  "Comple_veg",             # Complejidad de la vegetacion
+  # Matorral y herbaceas
+  "Mat_ab", "Mat_den",      # Matorral (abundancia, densidad)
+  "Herb_ralos",             # Herbaceas ralas
+  "Herb_altos",             # Herbaceas altos
+  # Cultivos
+  "Cul_herb",               # Cultivos herbaceos
+  "Cul_reg",                # Cultivos de regadio
+  "Cult_inund",             # Cultivos inundados (arrozales)
+  "Olivar",                 # Olivares
+  "Vid",                    # Vinedos
+  "Frutales",               # Frutales
+  "Mosaico_agri",           # Mosaico agricola
+  # Indices compuestos de cobertura
+  "C_agric_total",          # Cobertura agricola total
+  "C_agric_arb",            # Cobertura agricola arborea
+  # Perturbacion / cambio
+  "Deforest"                # Deforestacion
 )
 
 # ==============================================================================
 # DETECCION DE TIPO DE VARIABLE POR PATTERN MATCHING
 # ==============================================================================
 #
-# Esta funcion clasifica CUALQUIER nombre de variable usando expresiones
-# regulares. Es el fallback cuando una variable no aparece en los vectores
-# hardcoded. Esto es necesario porque:
+# Fallback para clasificar variables que no aparecen en los vectores hardcoded.
+# Util cuando:
+#   1. Se anaden nuevas variables al Excel SEO entre versiones.
+#   2. Los nombres varian ligeramente entre EC y BAL.
+#   3. Se incorporan fuentes adicionales con nombres no previstos.
 #
-# 1. Los nombres del Excel SEO pueden variar entre versiones (Variables_EC.xlsx
-#    vs Variables_BAL.xlsx).
-# 2. Nuevas variables pueden anadirse al pipeline sin tener que actualizar
-#    manualmente los vectores.
-# 3. Algunas variables tienen prefijos predecibles (CLC_, Karst_, Lito_, bio)
-#    que permiten clasificacion automatica fiable.
-#
-# Las reglas de pattern matching reflejan convenciones de nombrado en:
-#   - WorldClim (bio1-bio19)
-#   - Excel SEO (T, P, DP, DTN, DTX, Alt_rec, Slop_rec, Shannon, etc.)
-#   - CORINE derivado (CLC_*)
-#   - Geologia derivada (Karst_*, Lito_*)
-#   - Variables topograficas comunes (SRTM, TRI, TWI, etc.)
+# Patrones basados en convenciones de nombrado del Excel SEO:
+#   - Temperaturas: T, Tn*, Tx*, TAut, TJan, TJul...
+#   - Precipitacion: P, PAut, PSpr..., DP01, DP1, DP10, DP30 + estacionales
+#   - Dias umbral: DTN0, DTN20, DTX25 + estacionales
+#   - Radiacion: SID*, SIS*
+#   - Topografia: Alt_rec, Slop_rec, RA_rec, ETP_rec, ETR_rec, WE_rec, SE_rec, CTI
+#   - Bosques: Pina*, Haya*, Cast*, Chopo*, Roble*, Fres*, Enc_alq*, Planif*,
+#              Euca, Pal, Lauri*, C_forest_*
+#   - Geologia: Karst_*, Lito_*, Roquedos, Arenales
+#   - Agua: Masas_agua, Riberas*, C_amb_acuat
+#   - Urbano: Ciudad, Pueblo, Urbaniz*, Carreteras, Dens_pob*, U500*, U100*
+#   - Paisaje: Shannon, Comple_veg, Mat_*, Herb_*, Cul_*, Olivar, Vid...
 # ==============================================================================
 
 #' Detect variable type by pattern matching on the variable name
@@ -187,60 +226,58 @@ landscape_vars <- c(
 #'   "geologica", "acuatica", "urbana", "paisaje", or "otra"
 detect_variable_type <- function(varname) {
   # Orden de evaluacion: de mas especifico a mas generico para evitar
-
-  # falsos positivos. Por ejemplo, "Lito_" debe evaluarse antes que patrones
-  # mas amplios.
+  # falsos positivos.
 
   # --- CLIMATICA ---
-  # bio1-bio19 (WorldClim), temperaturas (T, Tx, Tn, TJan, TJul, TAut...),
-  # precipitaciones (P, PAut, PSpr...), dias umbral (DP01, DTN0, DTX25),
-  # indices climaticos (PET, ETP, aridez, deficit, continentalidad)
-  if (str_detect(varname, "^(bio|Bio|BIO|T$|Tx|Tn|P$|PAut|PSpr|PSum|PWin|TAut|TSpr|TSum|TWin|TJan|TJul|DP|DTN|DTX|temp|prec|arid|PET|ETP|deficit|continental)")) {
+  # Temperaturas (T, Tn*, Tx* + estacionales), precipitaciones (P + estacionales),
+  # dias con precipitacion/temperatura umbral (DP*, DTN*, DTX*),
+  # radiacion solar (SID*, SIS*), sequia (DAut_rec)
+  if (str_detect(varname, "^(T$|T[nxA-Z]|P$|PAut|PSpr|PSum|PWin|DP[013]|DTN|DTX|SID|SIS|DAut_rec)")) {
     return("climatica")
   }
 
-
   # --- TOPOGRAFICA ---
-  # Altitud (Alt, SRTM), pendiente (Slop, slope, pend), orientacion,
-  # rugosidad (TRI, rugos), indice topografico de humedad (TWI),
-  # curvatura, radiacion (RA_, WE_, SE_), distancia a costa
-  if (str_detect(varname, "^(Alt|Slop|slope|alt|SRTM|RA_|WE_|SE_|pend|orient|rugos|TRI|TWI|curv|dist_costa)")) {
+  # Altitud (Alt_rec), pendiente (Slop_rec), radiacion (RA_rec),
+  # evapotranspiracion (ETP_rec, ETR_rec), excedente hidrico (WE_rec),
+  # energia solar (SE_rec), indice topografico (CTI)
+  if (str_detect(varname, "^(Alt_rec|Slop_rec|RA_rec|ETP_rec|ETR_rec|WE_rec|SE_rec|CTI$)")) {
     return("topografica")
   }
 
   # --- GEOLOGICA ---
-  # Karst (Karst_*), litologia (Lito_*), roquedos CORINE (CLC_rupicola)
-  # Se evalua ANTES de forestal/paisaje porque CLC_rupicola podria confundirse
-  if (str_detect(varname, "^(Karst|Lito_|K_|L_|CLC_rupicola|Roquedos)")) {
+  # Karst (Karst_*), litologia (Lito_*), roquedos y arenales del Excel SEO
+  # Se evalua ANTES de forestal/paisaje para evitar falsos positivos
+  if (str_detect(varname, "^(Karst|Lito_|Roquedos|Arenales)")) {
     return("geologica")
   }
 
   # --- FORESTAL ---
-  # Bosques CORINE (CLC_bosques), NDVI, tipos de bosque (Pina, Haya, etc.),
-  # estructura forestal (fcc, cobert, densid, altur, biomas, vol_madera)
-  if (str_detect(varname, "^(CLC_bosques|NDVI|forest|bosque|Pina|Haya|Cast|Chopo|Roble|Fres|Enc_|Planif|Euca|Pal|Lauri|C_forest|fcc|vol_madera|cobert|densid_arb|altur|biomas|diversid_forest)")) {
+  # Tipos de bosque del Excel SEO (Pina*, Haya*, Cast*, Chopo*, Roble*,
+  # Fres*, Enc_alq*, Planif*, Plani_con*, Euca, Pal, Lauri*),
+  # indices forestales compuestos (C_forest_*), enebros/sabinas (Ene_sab)
+  if (str_detect(varname, "^(Pina|Haya|Cast|Chopo|Roble|Fres|Enc_alq|Planif|Plani_con|Euca$|Pal$|Lauri|C_forest|Ene_sab)")) {
     return("forestal")
   }
 
   # --- ACUATICA ---
-  # Masas de agua CORINE (CLC_acuatico), distancia a rios/agua, densidad rios,
-  # caudal, humedales, laminas artificiales (LamArt), aguas estancadas (AguEst)
-  if (str_detect(varname, "^(CLC_acuatico|dist_rio|dist_agua|densid_rio|longitud_rio|orden_str|caudal|humedal|Masas_agua|Riberas|LamArt|AguEst|water)")) {
+  # Masas de agua, riberas (arboladas/desarboladas), ambientes acuaticos
+  if (str_detect(varname, "^(Masas_agua|Riberas|C_amb_acuat)")) {
     return("acuatica")
   }
 
   # --- URBANA ---
-  # Urbano CORINE (CLC_urbano), nucleos urbanos (Ciudad, Pueblo, Urbaniz),
-  # carreteras, densidad poblacion, luz nocturna, huella humana
-  if (str_detect(varname, "^(CLC_urbano|Ciudad|Pueblo|Urbaniz|Otros_urba|Carreteras|dist_nucleo|densid_pobl|luz_noct|infraestr|human_foot|Area_degrad)")) {
+  # Nucleos urbanos (Ciudad, Pueblo, Urbanizacion), infraestructuras
+  # (Carreteras, Area_degradadas), demografia (Dens_pob, U500, U100),
+  # ambientes urbanizados (C_amb_urbani)
+  if (str_detect(varname, "^(Ciudad|Pueblo|Urbaniz|Otros_urba|Carreteras|Area_degradadas|Dens_pob|U500|U100|C_amb_urbani)")) {
     return("urbana")
   }
 
   # --- PAISAJE ---
-  # CORINE de paisaje (CLC_mosaico, CLC_pastizal, CLC_cultivo, CLC_perturbacion),
-  # indices de diversidad de paisaje (Shannon, Comple_veg), cultivos (Olivar, Vid),
-  # metricas de paisaje (n_parches, edge_dens, fragment)
-  if (str_detect(varname, "^(CLC_mosaico|CLC_pastizal|CLC_cultivo|CLC_perturbacion|Shannon|Comple_veg|Mosaico_agri|Olivar|Vid|Frutales|Cul_|n_parches|edge_dens|fragment|diversid_shannon|Herb_|Mat_|Ene_sab|Deforest)")) {
+  # Diversidad (Shannon, Comple_veg), matorral (Mat_*), herbaceas (Herb_*),
+  # cultivos (Cul_*, Cult_inund, Olivar, Vid, Frutales, Mosaico_agri),
+  # cobertura agricola (C_agric_*), deforestacion, otros habitat
+  if (str_detect(varname, "^(Shannon|Comple_veg|Mosaico_agri|Olivar|Vid$|Frutales|Cul_|Cult_inund|Herb_|Mat_|Deforest|C_agric|otros_habitat)")) {
     return("paisaje")
   }
 
@@ -262,7 +299,7 @@ cargar_gremios <- function() {
 
   # Eje 1: Refugio
   # Clasifica cada especie segun el tipo de refugio que utiliza:
-  # Cavernicola, Arboricola, Antropofilo, Fisuricola, Rupicola, etc.
+  # Cavernicola, Arboricola, Fisuricola, Generalista (v2 2026)
   # Cada categoria tiene una lista de variables_prioritarias en el CSV.
   gremios$refugio <- read_csv(CONFIG$paths$gremios_refugio, show_col_types = FALSE) %>%
     mutate(vars = str_split(variables_prioritarias, ",\\s*"))
@@ -336,9 +373,8 @@ obtener_especies_complejo <- function(nombre_complejo, gremios) {
 # EJE REFUGIO (donde duermen/hibernan):
 #   - Cavernicola: depende de cavidades karsticas -> geologica es nucleo
 #   - Arboricola: depende de bosques maduros -> forestal es nucleo
-#   - Antropofilo: depende de edificaciones -> urbana es nucleo
-#   - Fisuricola: depende de fisuras en roca -> geologica + topografia es nucleo
-#   - Rupicola: depende de cantiles rocosos -> geologica + topografia es nucleo
+#   - Generalista: plastico en refugio -> paisaje + urbana es nucleo (reemplaza Antropofilo v2)
+#   - Fisuricola: depende de fisuras en roca/edificios -> geologica + topografia es nucleo (absorbe Rupicola v2)
 #
 # EJE ALIMENTACION (donde cazan):
 #   - Forestal: caza entre/sobre arboles -> forestal es nucleo
@@ -374,7 +410,7 @@ assign_priorities_refugio <- function(cat_refugio) {
     # CAVERNICOLA: Rhinolophus spp., Miniopterus, Myotis myotis, M. blythii, etc.
     # Necesitan cavidades (cuevas, minas, tuneles) para colonias de cria e
     # hibernaculos. Las variables geologicas (karst, litologia karstica) son
-    # las mas predictivas. CLC_rupicola y la topografia complementan porque
+    # las mas predictivas. Roquedos y la topografia complementan porque
     # las cuevas suelen estar en zonas montanosas con afloramientos.
     "Cavernicola" = list(
       nucleo = c(rock_vars),
@@ -384,36 +420,29 @@ assign_priorities_refugio <- function(cat_refugio) {
     # ARBORICOLA: Nyctalus spp., Barbastella barbastellus, Plecotus spp.
     # Utilizan huecos de arboles, corteza desprendida, cajas nido.
     # Dependen de bosques maduros con arboles viejos y muertos en pie.
-    # CLC_bosques y NDVI son los mejores proxies de disponibilidad de refugios.
+    # C_forest_*, tipos de bosque (Roble, Haya, etc.) son los mejores proxies.
     # La topografia y el paisaje complementan (bosques de ladera, fragmentacion).
     "Arboricola" = list(
       nucleo = c(forest_vars),
       complementaria = c(topo_vars, landscape_vars)
     ),
 
-    # ANTROPOFILO: Pipistrellus pipistrellus, P. pygmaeus, Eptesicus serotinus,
-    # Tadarida teniotis (en edificios). Utilizan construcciones humanas
-    # (desvanes, juntas de dilatacion, puentes). Las variables urbanas y de
-    # densidad de poblacion predicen la disponibilidad de edificios.
-    "Antropofilo" = list(
-      nucleo = c(urban_vars),
-      complementaria = c(forest_vars, landscape_vars)
+    # GENERALISTA (refugio): Pipistrellus pipistrellus, P. pygmaeus, P. kuhlii,
+    # Eptesicus serotinus, Plecotus austriacus, Myotis daubentonii, M. mystacinus.
+    # Especies plasticas sin preferencia clara de refugio: usan fisuras, cuevas,
+    # edificios y arboles indistintamente. NO se rescatan variables de refugio
+    # especificas. Se priorizan climaticas y paisaje (heterogeneidad).
+    # Sustituye a la antigua categoria "Antropofilo" (v2, consenso comite 2026).
+    "Generalista" = list(
+      nucleo = c(landscape_vars, urban_vars),
+      complementaria = c(forest_vars, topo_vars)
     ),
 
-    # FISURICOLA: Tadarida teniotis (en roca), Pipistrellus kuhlii, Hypsugo savii.
-    # Utilizan fisuras estrechas en paredes rocosas, cantiles, puentes.
-    # Necesitan afloramientos rocosos (CLC_rupicola) con fisuras, tipicamente
-    # en zonas de pendiente elevada y rugosidad alta (TRI).
+    # FISURICOLA: Tadarida teniotis, Eptesicus isabellinus, Hypsugo savii,
+    # Vespertilio murinus. Utilizan fisuras estrechas en paredes rocosas,
+    # cantiles, puentes y construcciones. Absorbe la antigua categoria
+    # "Rupicola" (v2, consenso comite 2026: Carlos Ibanez, JT Alcalde).
     "Fisuricola" = list(
-      nucleo = c(rock_vars, topo_vars),
-      complementaria = c(forest_vars)
-    ),
-
-    # RUPICOLA: Myotis capaccinii (en cuevas/puentes sobre agua),
-    # algunas poblaciones de Rhinolophus en grietas de cantiles.
-    # Similar a fisuricola pero con mayor dependencia de cantiles rocosos
-    # verticales. La pendiente y rugosidad son criticas.
-    "Rupicola" = list(
       nucleo = c(rock_vars, topo_vars),
       complementaria = c(forest_vars, water_vars)
     ),
@@ -454,8 +483,8 @@ assign_priorities_alimentacion <- function(cat_alim) {
 
     # RIPARIO: Myotis daubentonii, M. capaccinii.
     # Cazan insectos que emergen del agua o vuelan rasantes sobre rios,
-    # embalses y balsas de riego. La distancia a masas de agua, la densidad
-    # de la red fluvial y CLC_acuatico son las variables mas predictivas.
+    # embalses y balsas de riego. Masas_agua, Riberas_arb y C_amb_acuat
+    # son las variables mas predictivas.
     "Ripario" = list(
       nucleo = c(water_vars),
       complementaria = c(forest_vars)
@@ -472,7 +501,7 @@ assign_priorities_alimentacion <- function(cat_alim) {
 
     # MOSAICO: Rhinolophus ferrumequinum, R. euryale.
     # Cazan en mosaicos agro-pastorales con setos, olivares y bosquetes
-    # intercalados. Los mosaicos CORINE y cultivos lenosos son clave.
+    # intercalados. Mosaico_agri, Olivar y cultivos del Excel SEO son clave.
     "Mosaico" = list(
       nucleo = c(landscape_vars),
       complementaria = c(forest_vars)
@@ -480,10 +509,10 @@ assign_priorities_alimentacion <- function(cat_alim) {
 
     # PASTIZAL: Myotis myotis, M. blythii.
     # Cazan escarabajos y grillos posados en el suelo de pastizales abiertos
-    # y dehesas. CLC_pastizal es la variable principal; la topografia
-    # complementa (prefieren terrenos llanos o suavemente ondulados).
+    # y dehesas. Herb_ralos, Herb_altos y Mosaico_agri son las variables
+    # principales; la topografia complementa (terrenos llanos/ondulados).
     "Pastizal" = list(
-      nucleo = c("CLC_pastizal", landscape_vars),
+      nucleo = c(landscape_vars),
       complementaria = c(topo_vars)
     ),
 
