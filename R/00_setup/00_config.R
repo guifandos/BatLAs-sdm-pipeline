@@ -247,7 +247,7 @@ CONFIG <- list(
   # Control de ejecucion: activa/desactiva fases individuales.
   # force_rerun = TRUE recalcula especies ya procesadas.
   control = list(
-    force_rerun = TRUE,     # TRUE para recalcular todo (fix vars geometricas)
+    force_rerun = FALSE,    # TRUE para recalcular especies ya procesadas
     ejecutar = list(
       preparacion_datos = FALSE,     # Fase 0: preparacion de datos brutos
       seleccion_variables = TRUE,    # Fase 1: seleccion de variables (7 fases)
