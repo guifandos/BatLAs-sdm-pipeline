@@ -5,14 +5,17 @@
 ui <- tagList(
   tags$footer(
     class = "atlas-footer",
-    tags$span("Guillermo Fandos · UCM · 2025")
+    tags$span("Guillermo Fandos · UCM · 2025"),
+    tags$span(" | ",
+      style = "margin: 0 6px; opacity: 0.5;"),
+    tags$span("Por favor, cierra esta pestaña cuando termines de usar la aplicación.",
+      style = "font-style: italic; opacity: 0.7;")
   ),
   page_sidebar(
   title = tags$span(
     tags$img(src = "Logo_SECEMU-Horizontal.png", height = "28px",
              style = "vertical-align:middle; margin-right:10px;"),
-    tags$strong("Atlas de Murciélagos Ibéricos"),
-    tags$span(" | SECEMU", style = "color:#00B4D8; font-weight:400; font-size:0.85em;")
+    tags$strong("Atlas de Murciélagos Ibéricos")
   ),
   theme = bs_theme(
     version   = 5,
@@ -22,7 +25,28 @@ ui <- tagList(
     secondary = "#00B4D8",
     "font-size-base" = "0.9rem"
   ),
-  tags$head(tags$link(rel = "stylesheet", href = "custom.css")),
+  tags$head(
+    tags$link(rel = "stylesheet", href = "custom.css"),
+    tags$script(HTML("
+      (function() {
+        var timeout = 15 * 60 * 1000; // 15 minutos
+        var timer = null;
+
+        function resetTimer() {
+          if (timer) clearTimeout(timer);
+          timer = setTimeout(function() {
+            Shiny.setInputValue('inactivity_warning', Date.now());
+          }, timeout);
+        }
+
+        ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'].forEach(function(evt) {
+          document.addEventListener(evt, resetTimer, true);
+        });
+
+        resetTimer();
+      })();
+    "))
+  ),
   shinyjs::useShinyjs(),
 
   # --- Sidebar ---

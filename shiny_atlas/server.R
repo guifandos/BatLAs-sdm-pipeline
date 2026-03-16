@@ -13,6 +13,31 @@ TEXTOS_CAPA <- list(
 
 server <- function(input, output, session) {
 
+  # --- Gestión de inactividad ---
+  session_continued <- reactiveVal(FALSE)
+
+  observeEvent(input$inactivity_warning, {
+    session_continued(FALSE)
+    showModal(modalDialog(
+      title = "Sesión inactiva",
+      tags$p("Tu sesión ha estado inactiva durante un tiempo.",
+             "La aplicación se cerrará en 60 segundos a menos que continúes."),
+      footer = actionButton("btn_continue_session", "Continuar sesión",
+                            class = "btn-primary"),
+      easyClose = FALSE
+    ))
+    later::later(function() {
+      if (!isolate(session_continued())) {
+        session$close()
+      }
+    }, delay = 60)
+  })
+
+  observeEvent(input$btn_continue_session, {
+    session_continued(TRUE)
+    removeModal()
+  })
+
   # Ocultar/mostrar sidebar según la pestaña activa
   observeEvent(input$tabs, {
     if (input$tabs %in% c("Proyecto", "Metodología")) {
