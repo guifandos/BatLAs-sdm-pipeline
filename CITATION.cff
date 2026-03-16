@@ -17,14 +17,6 @@ authors:
     email: gfandos@ucm.es
     affiliation: "Dpto. Biodiversidad, Ecología y Evolución, Universidad Complutense de Madrid"
     orcid: "https://orcid.org/0000-0003-1579-9444"
-  - family-names: Tena
-    given-names: Elena
-    affiliation: SECEMU
-  - family-names: Cabezas León
-    given-names: Silvia María
-    affiliation: SECEMU
-  - name: Comisión SECEMU
-    affiliation: SECEMU
 keywords:
   - bats
   - species distribution models

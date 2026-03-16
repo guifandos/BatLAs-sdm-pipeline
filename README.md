@@ -107,9 +107,13 @@ shiny::runApp("shiny_atlas/")
 
 ---
 
-## Autores
+## Autor
 
-- **Guillermo Fandos** — Dpto. Biodiversidad, Ecología y Evolución, Universidad Complutense de Madrid (desarrollo del pipeline, modelización y aplicación interactiva)
+**Guillermo Fandos** — Dpto. Biodiversidad, Ecología y Evolución, Universidad Complutense de Madrid
+*(desarrollo del pipeline, modelización y aplicación interactiva)*
+
+## Equipo del Atlas
+
 - **Elena Tena** — SECEMU (coordinación científica y datos)
 - **Silvia María Cabezas León** — SECEMU (coordinación científica y datos)
 - **Comisión SECEMU** (asesoramiento científico)
