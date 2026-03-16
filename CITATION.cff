@@ -1,22 +1,29 @@
 cff-version: 1.2.0
-message: "Si utiliza este software, por favor cite como se indica a continuacion."
+message: "Si utiliza este software, por favor cite como se indica a continuación."
 type: software
-title: "Atlas de Distribucion de Murcielagos de la Peninsula Iberica"
-version: 1.0.0
-date-released: 2026-02-16
+title: "Atlas de Distribución de Murciélagos de la Península Ibérica"
+abstract: >-
+  Pipeline reproducible de modelos de distribución de especies (SDM) para
+  29 especies de murciélagos de la Península Ibérica y Baleares, a resolución
+  UTM 10×10 km. Combina GLM ambientales, GAM espaciales, intersección fuzzy
+  e incertidumbre multifuente, con selección de variables guiada por gremios
+  ecológicos. Incluye aplicación Shiny interactiva para la exploración de
+  resultados.
+version: 2.0.0
+date-released: 2026-03-16
 authors:
   - family-names: Fandos
     given-names: Guillermo
     email: gfandos@ucm.es
-    affiliation: Universidad Complutense de Madrid
-    orcid: ""
+    affiliation: "Dpto. Biodiversidad, Ecología y Evolución, Universidad Complutense de Madrid"
+    orcid: "https://orcid.org/0000-0003-1579-9444"
   - family-names: Tena
     given-names: Elena
     affiliation: SECEMU
-  - family-names: Cabezas Leon
-    given-names: Silvia Maria
+  - family-names: Cabezas León
+    given-names: Silvia María
     affiliation: SECEMU
-  - name: Comision SECEMU
+  - name: Comisión SECEMU
     affiliation: SECEMU
 keywords:
   - bats
@@ -25,5 +32,7 @@ keywords:
   - favorability
   - atlas
   - chiroptera
+  - SDM
+  - uncertainty
 license: CC-BY-4.0
 repository-code: "https://github.com/guifandos/atlas-murcielagos-iberia"
