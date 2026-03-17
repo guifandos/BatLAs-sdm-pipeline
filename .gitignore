@@ -1,54 +1,69 @@
 # ==============================================================================
-# .gitignore - Atlas de Murciélagos SECEMU
+# .gitignore - Iberian Bat SDM Pipeline
 # ==============================================================================
-# Se versionan: código R/, shiny_atlas/, metadatos data/metadata/, docs/,
-# tests/, configuración (renv.lock, .Rprofile, renv/settings.json),
-# CITATION.cff, LICENSE, README.md, imagenes/, informes .qmd
+# Versioned: R/, data/metadata/, data/simulated/, docs/, tests/, examples/,
+# configuration (renv.lock, .Rprofile, renv/settings.json),
+# CITATION.cff, LICENSE, README.md, imagenes/
 
 # ==============================================================================
-# CARPETAS ANTIGUAS / OBSOLETAS
+# LEGACY / OBSOLETE DIRECTORIES
 # ==============================================================================
 atlas_murcielagos_pipeline_26112025/
 archivos_nuevos/
 
 # ==============================================================================
-# DATOS (grandes / sensibles / reproducibles)
+# SHINY APP (not part of the public pipeline)
+# ==============================================================================
+shiny_atlas/
+output_shiny/
+preprocesar_output_shiny.R
+
+# ==============================================================================
+# DATA (large / sensitive / reproducible)
 # ==============================================================================
 
-# --- Datos brutos ---
+# --- Raw data (not distributed) ---
 data/raw/
 
-# --- Datos procesados (reproducibles desde raw) ---
+# --- Processed data (reproducible from raw) ---
 data/processed/
 data/processed_2014/
 
-# --- Datos listos para modelado (reproducibles desde processed) ---
+# --- Model-ready data (reproducible from processed) ---
 data/modelado_ready/
 data/modelado_ready_2014/
 
+# --- Generic RDS exclusion (safety net) ---
+*.rds
+
+# --- Exception: simulated data IS versioned ---
+!data/simulated/*.rds
+
 # ==============================================================================
-# OUTPUTS DEL PIPELINE (reproducibles - ~3.5 GB)
+# PIPELINE OUTPUTS (reproducible - ~3.5 GB)
 # ==============================================================================
 output/
 output_2014/
-output_shiny/
-
-# --- Symlink dentro de shiny_atlas ---
-shiny_atlas/output_shiny
 
 # ==============================================================================
-# RESULTADOS INTERMEDIOS
+# INTERMEDIATE RESULTS
 # ==============================================================================
 resultados/
 
 # ==============================================================================
-# INFORMES (reproducibles desde .qmd)
+# REPORTS (reproducible from .qmd)
 # ==============================================================================
 *.html
 *.qmd
 
 # ==============================================================================
-# RENV (solo renv.lock y renv/settings.json van al repo)
+# INTERNAL DOCUMENTS (not for public repo)
+# ==============================================================================
+AUDIT_PRE_WORKFLOW.md
+data/metadata/FEEDBACK_*.xlsx
+
+# ==============================================================================
+# RENV (only renv.lock and renv/settings.json are versioned)
 # ==============================================================================
 renv/library/
 renv/local/
@@ -69,7 +84,7 @@ renv/activate.R
 *.Rproj
 
 # ==============================================================================
-# SISTEMA OPERATIVO
+# OPERATING SYSTEM
 # ==============================================================================
 # macOS
 .DS_Store
@@ -88,7 +103,7 @@ Desktop.ini
 *~
 
 # ==============================================================================
-# EDITORES / IDEs
+# EDITORS / IDEs
 # ==============================================================================
 *.swp
 *.swo
@@ -98,12 +113,12 @@ Desktop.ini
 *.sublime-workspace
 
 # ==============================================================================
-# HERRAMIENTAS DE DESARROLLO
+# DEVELOPMENT TOOLS
 # ==============================================================================
 .claude/
 
 # ==============================================================================
-# TEMPORALES / GENERADOS
+# TEMPORARY / GENERATED
 # ==============================================================================
 *.tmp
 *.bak
