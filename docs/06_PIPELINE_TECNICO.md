@@ -199,6 +199,14 @@ El valor de k para el GAM se adapta al tamaño muestral: `k = min(30, floor(n_pr
 
 Se selecciona el método con menor AICc (Burnham & Anderson 2002) y se aplica bootstrap de 200 iteraciones.
 
+### Enfoque alternativo: residuos del modelo ambiental
+
+El script `03b_bis_espacial_residuos.R` implementa un enfoque que modela los residuos del GLM ambiental (`PA - prob_ambiental`) en lugar de la PA directa, usando `family = gaussian`. Esto evita el doble conteo de la señal ambiental en la intersección fuzzy, ya que el modelo espacial solo captura la estructura geográfica residual (dispersión, barreras, historia biogeográfica).
+
+Se activa con `CONFIG$espacial$usar_residuos = TRUE` o ejecutando `03b_bis` de forma independiente. El script incluye diagnósticos de residuos y comparación AICc entre ambos enfoques por especie. El enfoque de residuos es preferible cuando el AUC ambiental es alto (>0.8); el enfoque estándar (PA directa) es más robusto cuando el modelo ambiental es débil.
+
+Marco teórico: partición de la variación espacial (Borcard et al. 1992, Legendre & Legendre 2012). Ver `docs/03_MODELIZACION.md` para la justificación detallada.
+
 ---
 
 ## 6. Intersección fuzzy
@@ -381,6 +389,11 @@ output/modelos/{especie}/
 │   ├── predicciones.csv          # F_esp_mean, F_esp_sd
 │   ├── comparacion_aicc.csv      # AICc por método
 │   └── modelo_espacial.rds       # Modelo seleccionado
+├── espacial_residuos/              # (opcional, si usar_residuos=TRUE o 03b_bis)
+│   ├── predicciones.csv          # F_esp_res_mean, pred_residuo, p_total
+│   ├── diagnostico_residuos.csv  # Estadísticos de residuos
+│   ├── comparacion_aicc.csv      # AICc residuos vs PA directa
+│   └── metadata.json             # Enfoque, var_ratio_residual
 ├── interseccion/
 │   ├── predicciones.csv          # F_final_mean, F_final_sd, q025, q975
 │   └── bootstrap_samples.rds     # Matriz 200 × n_celdas (fuzzy)
@@ -446,6 +459,7 @@ output/seleccion_variables/
 ## Referencias
 
 - Acevedo, P. & Real, R. (2012). Favourability: concept, distinctive characteristics and potential usefulness. *Naturwissenschaften*, 99, 515-522.
+- Borcard, D., Legendre, P. & Drapeau, P. (1992). Partialling out the spatial component of ecological variation. *Ecology*, 73, 1045-1055.
 - Burnham, K.P. & Anderson, D.R. (2002). *Model Selection and Multimodel Inference*. Springer.
 - Dormann, C.F. et al. (2013). Collinearity: a review of methods to deal with it. *Ecography*, 36, 27-46.
 - Elith, J. et al. (2010). The art of modelling range-shifting species. *Methods in Ecology and Evolution*, 1, 330-342.
