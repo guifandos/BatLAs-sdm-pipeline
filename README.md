@@ -284,6 +284,18 @@ Complutense de Madrid *(pipeline development, modelling and analysis)*\
 - **Silvia María Cabezas León** — SECEMU (scientific coordination and data)
 - **SECEMU Commission** (scientific advisory)
 
+## Acknowledgements
+
+We thank Daniel Fuentes Romero, Esther Murciano Quejido and Pedro Rebollo for
+their participation in the preparation and processing of the environmental
+variables used in this study.
+
+We thank SEO/BirdLife for providing various environmental variables in digital
+format and at grid scale for species distribution modelling, which constitutes a
+fundamental contribution to the methodological development of this work.
+
+We thank SECEM for sharing their modelling process.
+
 ## License
 
 Code: MIT License · Data and results: CC BY 4.0
