@@ -3,10 +3,10 @@
 Reproducible SDM pipeline for the **29 bat species** of the Iberian Peninsula
 and Balearic Islands, at UTM 10x10 km resolution.
 
-Developed within the Bat Monitoring and Atlas project of the Spanish Ministry
-for the Ecological Transition (MITECO), coordinated by
-[SECEMU](https://secemu.org/project/seguimiento-de-fauna/) and Tragsatec,
-funded by the EU-NextGenerationEU.
+Developed within the [Bat Monitoring and Atlas project](https://secemu.org/proyectos/)
+of the Spanish Ministry for the Ecological Transition (MITECO), coordinated by
+[SECEMU](https://secemu.org/) and Tragsatec, funded by the EU-NextGenerationEU.
+
 
 ---
 
@@ -166,7 +166,6 @@ renv::restore()
 ```
 R/
 ├── run_pipeline.R                 # Master orchestration script
-├── run_pipeline_2014.R            # Temporal variant (records ≥ 2014)
 ├── 00_setup/                      # Centralized configuration
 │   ├── 00_config.R                # All paths, parameters, phase toggles
 │   └── 00_packages.R              # Package installation and loading
