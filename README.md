@@ -275,7 +275,8 @@ their distinct biogeographic characteristics and different species composition.
 ## Author
 
 **Guillermo Fandos** — Dept. Biodiversity, Ecology and Evolution, Universidad
-Complutense de Madrid *(pipeline development, modelling and analysis)*
+Complutense de Madrid *(pipeline development, modelling and analysis)*\
+[gfandos.com](https://www.gfandos.com) · [UCM profile](https://produccioncientifica.ucm.es/investigadores/446092/detalle)
 
 ### Atlas team
 
