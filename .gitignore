@@ -15,8 +15,11 @@ archivos_nuevos/
 # SHINY APP (not part of the public pipeline)
 # ==============================================================================
 shiny_atlas/
+shiny_v2/
 output_shiny/
+output_shiny_2014/
 preprocesar_output_shiny.R
+preprocesar_output_shiny_2014.R
 
 # ==============================================================================
 # DATA (large / sensitive / reproducible)
@@ -44,6 +47,9 @@ data/modelado_ready_2014/
 # ==============================================================================
 output/
 output_2014/
+output_residuos/
+output_residuos_2014/
+output_mapas_estilo_momat/
 
 # ==============================================================================
 # INTERMEDIATE RESULTS
