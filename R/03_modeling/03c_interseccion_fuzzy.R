@@ -49,7 +49,9 @@ for (sp in especies) {
 
   sp_file <- str_replace_all(sp, " ", "_")
   dir_amb <- file.path(CONFIG$output$base, sp_file, "ambiental")
-  dir_esp <- file.path(CONFIG$output$base, sp_file, "espacial")
+  # Use spatial residuals when configured (avoids double-counting with environmental model)
+  esp_subdir <- if (isTRUE(CONFIG$espacial$usar_residuos)) "espacial_residuos" else "espacial"
+  dir_esp <- file.path(CONFIG$output$base, sp_file, esp_subdir)
   dir_out <- file.path(CONFIG$output$base, sp_file, "interseccion")
   dir.create(dir_out, recursive = TRUE, showWarnings = FALSE)
 

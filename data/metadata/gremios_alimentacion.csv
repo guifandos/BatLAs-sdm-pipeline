@@ -1,7 +1,7 @@
 categoria,variables_prioritarias,descripcion
-Forestal,"C_forest_total,C_forest_cadu,Shannon",Caza en ambientes forestales cerrados
-Ripario,"Masas_agua,Riberas_arb,C_amb_acuat",Caza sobre o cerca de cuerpos de agua
-Generalista,"Shannon,C_forest_total,Herb_ralos",Caza en multiples habitats sin especializacion
-Mosaico,"Olivar,Mosaico_agri,Cul_herb",Caza en paisajes agricolas heterogeneos
-Pastizal,"Herb_ralos,Herb_altos,Cul_herb",Caza en areas abiertas y pastizales
-Aereo,"Alt_rec,Herb_ralos,Slop_rec",Caza en vuelo alto sobre areas abiertas
+Forestal,"C_forest_total,C_forest_cadu,C_forest_conif,Haya_ab,Roble_ab,Pino_ab,Shannon",Especies que cazan principalmente en ambientes forestales
+Ripario,"Masas_agua,Riberas_arb,Riberas_desarb,C_amb_acuat",Especies que cazan sobre o cerca de masas de agua y riberas
+Generalista,"Shannon,Comple_veg,Dens_pob_rec,C_forest_total,Masas_agua",Especies generalistas sin preferencia clara de habitat de caza
+Mosaico,"Shannon,Comple_veg,Mosaico_agri,Olivar,C_forest_total,Masas_agua,Dens_pob_rec",Especies que cazan en mosaicos agro-forestales heterogeneos
+Pastizal,"Herb_altos,Herb_ralos,Cul_herb,Mosaico_agri,C_agric_total",Especies que cazan en pastizales y herbazales abiertos
+Aereo,"Shannon,Comple_veg,Masas_agua,Riberas_arb,Riberas_desarb,C_amb_acuat,Mosaico_agri,Cul_herb,Herb_altos,Herb_ralos",Cazadores aereos de vuelo alto sobre espacios abiertos. Insectos voladores concentrados cerca de masas de agua

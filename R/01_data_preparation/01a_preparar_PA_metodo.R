@@ -95,6 +95,36 @@ cat("Registros cargados:", nrow(presencias), "\n")
 cat("Columnas:", ncol(presencias), "\n")
 cat("Nombres de columnas:", paste(names(presencias), collapse = ", "), "\n\n")
 
+# --- DATOS SUPLEMENTARIOS (archivos adicionales por especie) ---
+# Permite incorporar registros extra de especies con datos insuficientes en el
+# archivo principal. Los archivos suplementarios deben tener el mismo esquema de
+# columnas y estar listados en CONFIG$paths$presencias_suplementarias.
+if (!is.null(CONFIG$paths$presencias_suplementarias)) {
+  for (ruta_sup in CONFIG$paths$presencias_suplementarias) {
+    if (file.exists(ruta_sup)) {
+      cat("Cargando datos suplementarios:", ruta_sup, "\n")
+      if (str_detect(ruta_sup, "\\.xlsx$")) {
+        sup <- read_excel(ruta_sup)
+        sup <- sup %>% mutate(across(where(is.character), ~iconv(., to = "UTF-8", sub = "")))
+      } else {
+        sup <- read_csv(ruta_sup, show_col_types = FALSE)
+      }
+      # Only bind columns that exist in both datasets, coercing types to match
+      cols_comunes <- intersect(names(presencias), names(sup))
+      for (col in cols_comunes) {
+        if (is.numeric(presencias[[col]]) && is.character(sup[[col]])) {
+          sup[[col]] <- suppressWarnings(as.numeric(sup[[col]]))
+        } else if (is.character(presencias[[col]]) && is.numeric(sup[[col]])) {
+          sup[[col]] <- as.character(sup[[col]])
+        }
+      }
+      presencias <- bind_rows(presencias[, cols_comunes], sup[, cols_comunes])
+      cat("  -> Registros tras incorporar suplementario:", nrow(presencias), "\n\n")
+    } else {
+      cat("[WARN] Archivo suplementario no encontrado:", ruta_sup, "\n")
+    }
+  }
+}
 
 # ==============================================================================
 # 2. AUTO-DETECCION DE COLUMNAS CLAVE (BUG 4/5 FIX)

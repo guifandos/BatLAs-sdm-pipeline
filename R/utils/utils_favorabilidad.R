@@ -11,6 +11,8 @@ favorabilidad <- function(prob, y_train) {
   n1 <- sum(y_train == 1)
   n0 <- sum(y_train == 0)
   if (n0 == 0) stop("No hay ausencias en datos de entrenamiento")
+  # Clamp to avoid Inf/NaN from prob=0 or prob=1
+  prob <- pmin(pmax(prob, 1e-15), 1 - 1e-15)
   odds <- prob / (1 - prob)
   prevalence <- n1 / n0
   F <- odds / (prevalence + odds)

@@ -247,10 +247,9 @@ modelar_espacial_residuos_sp <- function(sp, datos_pa, grid_data) {
   }
 
   # --- 1. Preparar datos ---
-  col_sp <- sp
-  if (!sp %in% names(datos_pa)) {
-    # Intentar con prefijo sp_
-    col_sp <- paste0("sp_", str_replace_all(sp, " ", "_"))
+  col_sp <- paste0("sp_", sp)
+  if (!col_sp %in% names(datos_pa)) {
+    col_sp <- sp  # fallback sin prefijo
     if (!col_sp %in% names(datos_pa)) {
       log_event("espacial_residuos", sp, "WARN", "Columna de especie no encontrada")
       return(list(status = "skip", sp = sp, reason = "sin_columna"))
@@ -259,8 +258,8 @@ modelar_espacial_residuos_sp <- function(sp, datos_pa, grid_data) {
 
   datos_sp <- datos_pa %>%
     filter(muestreado == 1) %>%
-    select(PA = all_of(col_sp), X, Y) %>%
-    drop_na()
+    mutate(PA = .data[[col_sp]]) %>%
+    drop_na(PA, X, Y)
 
   n_total <- nrow(datos_sp)
   n_pres <- sum(datos_sp$PA == 1)
@@ -276,14 +275,9 @@ modelar_espacial_residuos_sp <- function(sp, datos_pa, grid_data) {
   # --- 2. Calcular residuos del modelo ambiental ---
   modelo_amb <- readRDS(modelo_amb_file)
 
-  # Prediccion ambiental sobre las cuadriculas muestreadas
-  # Necesitamos las variables ambientales, no solo X,Y
-  datos_completos <- datos_pa %>%
-    filter(muestreado == 1) %>%
-    drop_na(all_of(c(col_sp, "X", "Y")))
-
+  # predict necesita las variables ambientales (datos_sp conserva todas las columnas)
   pred_amb <- tryCatch(
-    predict(modelo_amb, newdata = datos_completos, type = "response"),
+    as.numeric(predict(modelo_amb, newdata = datos_sp, type = "response")),
     error = function(e) {
       log_event("espacial_residuos", sp, "WARN",
                 sprintf("Error prediciendo amb: %s", e$message))
@@ -400,13 +394,12 @@ modelar_espacial_residuos_sp <- function(sp, datos_pa, grid_data) {
   }
 
   # Prediccion espacial del residuo
-  pred_residuo_espacial <- predict(modelo_final, newdata = coords_pred, type = "response")
+  pred_residuo_espacial <- as.numeric(predict(modelo_final, newdata = coords_pred, type = "response"))
 
   # Reconstruir: p_total = p_ambiental + f_espacial(residuo)
   # Necesitamos la prediccion ambiental sobre TODO el grid
   pred_amb_grid <- tryCatch(
-    predict(modelo_amb, newdata = grid_data$malla_union %||% datos_pa,
-            type = "response"),
+    as.numeric(predict(modelo_amb, newdata = datos_pa, type = "response")),
     error = function(e) {
       log_event("espacial_residuos", sp, "WARN",
                 sprintf("Error prediciendo amb en grid: %s", e$message))

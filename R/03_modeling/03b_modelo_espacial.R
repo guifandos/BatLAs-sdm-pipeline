@@ -95,16 +95,6 @@ modelar_espacial_sp <- function(sp, datos_pa, grid_data) {
 
   n_pres <- sum(datos_sp$PA == 1)
 
-  # O10 (opcional): usar residuos del modelo ambiental en vez de PA
-  if (isTRUE(CONFIG$espacial$usar_residuos)) {
-    modelo_amb <- readRDS(file.path(dir_amb, "modelo_glm.rds"))
-    datos_train_amb <- readRDS(file.path(dir_amb, "datos_entrenamiento.rds"))
-    # Solo podemos calcular residuos donde tenemos los datos de entrenamiento
-    pred_amb <- predict(modelo_amb, newdata = datos_sp, type = "response")
-    datos_sp$PA <- datos_sp$PA - pred_amb  # residuos (PA - prob)
-    log_event("espacial", sp, "INFO", "Usando residuos del modelo ambiental")
-  }
-
   # O2: k adaptativo
   k_gam <- calcular_k_gam(n_pres)
 

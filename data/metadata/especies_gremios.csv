@@ -1,34 +1,34 @@
 especie,refugio,alimentacion,modelar,complejo,notas
-Rhinolophus ferrumequinum,Cavernicola,Forestal,TRUE,,CF unica 80-82kHz
-Rhinolophus hipposideros,Cavernicola,Forestal,TRUE,,CF unica 105-112kHz
-Rhinolophus euryale,Cavernicola,Forestal,TRUE,,Solapamiento R.mehelyi
-Rhinolophus mehelyi,Cavernicola,Forestal,TRUE,,Solapamiento R.euryale
-Miniopterus schreibersii,Cavernicola,Generalista,TRUE,,Colonias masivas
-Myotis myotis,Cavernicola,Forestal,TRUE,,Distinguible en mano; filtrar registros acusticos dudosos
+Rhinolophus ferrumequinum,Cavernicola,Mosaico,TRUE,,CF unica 80-82kHz
+Rhinolophus hipposideros,Cavernicola,Mosaico,TRUE,,CF unica 105-112kHz
+Rhinolophus euryale,Cavernicola,Mosaico,TRUE,,Solapamiento R.mehelyi
+Rhinolophus mehelyi,Cavernicola,Mosaico,TRUE,,Solapamiento R.euryale
+Miniopterus schreibersii,Cavernicola,Aereo,TRUE,,Colonias masivas
+Myotis myotis,Cavernicola,Mosaico,TRUE,,Distinguible en mano; filtrar registros acusticos dudosos
 Myotis blythii,Cavernicola,Pastizal,TRUE,,Distinguible en mano; habitat de caza diferente
 Myotis emarginatus,Cavernicola,Mosaico,TRUE,,Escotadura diagnostica
-Myotis escalerai,Cavernicola,Forestal,TRUE,,Endemica iberica. Revisar_N (solo capturas confirmadas)
-Myotis crypticus,Cavernicola,Forestal,TRUE,,Especie criptica reciente. Revisar_N
+Myotis escalerai,Cavernicola,Mosaico,TRUE,,Endemica iberica. Revisar_N (solo capturas confirmadas)
+Myotis crypticus,Arboricola,Forestal,TRUE,,Especie criptica reciente. Revisar_N
 Myotis daubentonii,Generalista,Ripario,TRUE,,Plastico en refugio (fisuras+cuevas+edificios+arboles)
 Myotis capaccinii,Cavernicola,Ripario,TRUE,,Cuevas cerca agua
 Myotis bechsteinii,Arboricola,Forestal,TRUE,,FM indetectable
-Myotis mystacinus,Generalista,Forestal,TRUE,,Muy antropofilo en Peninsula (Galicia: construcciones)
+Myotis mystacinus,Arboricola,Forestal,TRUE,,Muy antropofilo en Peninsula (Galicia: construcciones)
 Myotis alcathoe,Arboricola,Forestal,TRUE,,Habitats distintos a mystacinus. Revisar_N
-Nyctalus leisleri,Arboricola,Forestal,TRUE,,Separable de noctula
-Nyctalus noctula,Arboricola,Forestal,TRUE,,N suficiente; separable acusticamente
-Nyctalus lasiopterus,Arboricola,Forestal,TRUE,,Muy rara. Revisar_N (probablemente insuficiente)
+Nyctalus leisleri,Arboricola,Aereo,TRUE,,Separable de noctula
+Nyctalus noctula,Arboricola,Aereo,TRUE,,N suficiente; separable acusticamente
+Nyctalus lasiopterus,Arboricola,Aereo,TRUE,,Muy rara. Revisar_N (probablemente insuficiente)
 Barbastella barbastellus,Arboricola,Forestal,TRUE,,Dehesas. Sotobosque
 Plecotus auritus,Arboricola,Forestal,TRUE,,FM indetectable; cria en desvanes rurales
 Plecotus austriacus,Generalista,Mosaico,TRUE,,Plastico en refugio (fisuras+cuevas+edificios)
-Plecotus macrobullaris,Arboricola,Forestal,FALSE,,Solo ~15 cuadriculas. Datos insuficientes
+Plecotus macrobullaris,Fisuricola,Pastizal,FALSE,,Solo ~15 cuadriculas. Datos insuficientes
 Plecotus teneriffae,Arboricola,Forestal,FALSE,,SOLO 15 cuadriculas Canarias
 Pipistrellus pipistrellus,Generalista,Generalista,TRUE,,Muy comun. Plastico en refugio
-Pipistrellus pygmaeus,Generalista,Ripario,TRUE,,Mas ligada a riberas en norte
+Pipistrellus pygmaeus,Generalista,Generalista,TRUE,,Mas ligada a riberas en norte
 Pipistrellus kuhlii,Generalista,Generalista,TRUE,,Termofila. Muy plastica en refugio
 Pipistrellus nathusii,Arboricola,Ripario,TRUE,,Migradora. Rara
 Pipistrellus maderensis,Generalista,Generalista,FALSE,,Criptica. Solo genetica. Revisar_N
-Cnephaeus serotinus,Generalista,Generalista,TRUE,,Muy plastico en refugio (antes Eptesicus serotinus)
+Cnephaeus serotinus,Fisuricola,Generalista,TRUE,,Muy plastico en refugio (antes Eptesicus serotinus)
 Cnephaeus isabellinus,Fisuricola,Generalista,TRUE,,Montana >800m (antes Eptesicus isabellinus)
 Hypsugo savii,Fisuricola,Generalista,TRUE,,Termofila
 Tadarida teniotis,Fisuricola,Aereo,TRUE,,Roquedos + construcciones. AUDIBLE 10-14kHz
-Vespertilio murinus,Fisuricola,Generalista,TRUE,,Rara (Pirineos)
+Vespertilio murinus,Fisuricola,Generalista,FALSE,,Rara (Pirineos) - excluida por datos insuficientes
