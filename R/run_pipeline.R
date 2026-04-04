@@ -204,6 +204,26 @@ if (isTRUE(CONFIG$control$ejecutar$modelo_espacial)) {
 }
 
 # ==============================================================================
+# FASE 3-BIS: MODELO ESPACIAL CON RESIDUOS
+# ==============================================================================
+# Ajusta modelos espaciales sobre los residuos del GLM ambiental (03b_bis).
+# Evita doble conteo del efecto ambiental en la interseccion fuzzy.
+# Output en espacial_residuos/ (independiente de espacial/).
+
+if (isTRUE(CONFIG$control$ejecutar$modelo_espacial) &&
+    isTRUE(CONFIG$espacial$usar_residuos)) {
+
+  cat("\n>>> FASE 3-BIS: MODELO ESPACIAL (RESIDUOS) <<<\n\n")
+  t3b <- Sys.time()
+
+  source("R/03_modeling/03b_bis_espacial_residuos.R")
+
+  t3b_dur <- difftime(Sys.time(), t3b, units = "mins")
+  tiempos_fases[["Fase 3-bis: Espacial residuos"]] <- t3b_dur
+  cat(sprintf("\n[OK] Fase 3-bis completada en %s\n", format(round(t3b_dur, 1))))
+}
+
+# ==============================================================================
 # FASE 4: INTERSECCION FUZZY
 # ==============================================================================
 # Combina favorabilidad ambiental y espacial mediante operadores fuzzy

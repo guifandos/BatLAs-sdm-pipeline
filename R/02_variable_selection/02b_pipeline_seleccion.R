@@ -417,9 +417,10 @@ fase5_control_muestral <- function(data, response_col, var_info,
     data_out <- data[, c(response_col, vars), drop = FALSE]
     message(sprintf("  FASE 5: Modelo simple (N=%d) -> %d variables", n_pres, length(vars)))
   } else {
-    # Modelo completo: >= 60 presencias -> limitar segun ratio N/p
+    # Modelo completo: >= 60 presencias -> limitar segun ratio N/p y tope absoluto
     status <- "modelo_completo"
-    max_vars <- floor(n_pres / ratio_Np)
+    max_vars_abs <- CONFIG$seleccion$max_vars_abs %||% Inf
+    max_vars <- min(floor(n_pres / ratio_Np), max_vars_abs)
     while (length(vars) > max_vars) {
       cand <- var_info %>% arrange(prioridad, desc(AIC_univar))
       n_gremio <- sum(var_info$prioridad >= 2)
@@ -617,7 +618,9 @@ run_pipeline_especie <- function(df, especie, especies_gremios,
 
   # Fase 0: Excluir variables geometricas de la malla UTM (no ecologicas)
   VARS_GEOMETRICAS <- c("PERIM_km", "Shape_Area", "Shape_Leng", "Shape_Le_1",
-                         "AREA_km", "Area_km2", "LaLo", "XCENTROIDE", "YCENTROIDE",
+                         "AREA_km", "Area_km2",
+                         "La", "Lo", "La2", "Lo2", "LaLo",
+                         "XCENTROIDE", "YCENTROIDE",
                          "OBJECTID", "FID", "Id")
   geom_presentes <- intersect(names(df), VARS_GEOMETRICAS)
   if (length(geom_presentes) > 0) {

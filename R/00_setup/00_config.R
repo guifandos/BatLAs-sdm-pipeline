@@ -202,6 +202,7 @@ CONFIG <- list(
     min_gremio_final = 2,         # Minimo de variables de gremio en modelo final
     min_presencias = 30,          # Minimo de presencias para modelizar
     midsize_max_vars = 5,         # Max variables para modelo simple (30-59 presencias)
+    max_vars_abs = 25,            # Tope absoluto de variables independiente de N (parsimonia)
     k_folds_validation = 5,       # Folds para validacion predictiva (fase 7)
     run_validation = TRUE,        # Ejecutar fase 7 (puede desactivarse para rapidez)
     stability_selection = TRUE,   # Ejecutar bootstrap de estabilidad para select07
