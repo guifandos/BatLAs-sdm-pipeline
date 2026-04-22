@@ -9,6 +9,7 @@ abstract: >-
   with variable selection guided by a two-axis ecological guild system.
 version: 2.1.0
 date-released: 2026-04-22
+doi: 10.5281/zenodo.19693956
 authors:
   - family-names: Fandos
     given-names: Guillermo
@@ -16,6 +17,16 @@ authors:
     affiliation: "Dept. Biodiversity, Ecology and Evolution, Universidad Complutense de Madrid"
     orcid: "https://orcid.org/0000-0003-1579-9444"
     website: "https://www.gfandos.com"
+  - family-names: Cabezas-León
+    given-names: "Silvia María"
+    affiliation: "SECEMU"
+  - family-names: Tena
+    given-names: Elena
+    affiliation: "SECEMU"
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.19693956
+    description: "Zenodo archive of v2.1.0"
 keywords:
   - bats
   - species distribution models
@@ -28,4 +39,3 @@ keywords:
 license: CC-BY-4.0
 repository-code: "https://github.com/guifandos/BatLAs-sdm-pipeline"
 url: "https://secemu.org/proyectos/"
-
