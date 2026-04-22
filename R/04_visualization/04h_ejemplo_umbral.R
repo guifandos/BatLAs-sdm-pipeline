@@ -2,9 +2,9 @@
 # 04h_ejemplo_umbral.R - Ejemplo visual de umbral de representacion F_final
 # ==============================================================================
 # Genera mapas comparativos (sin umbral vs F_final < 0.25 -> blanco) para
-# dos especies con favorabilidad residual en Baleares, para ilustrar la
-# opcion B a Elena. Los datos numericos subyacentes no se modifican: es
-# puramente un cambio de representacion.
+# dos especies con favorabilidad residual en Baleares. Los datos numericos
+# subyacentes no se modifican: es puramente un cambio de representacion
+# para evaluar si conviene aplicar un umbral visual en la edicion final.
 # ==============================================================================
 
 set.seed(42)

@@ -28,7 +28,7 @@ CONFIG <- list(
     # variables ambientales (Excel SEO) y geologia (CSVs).
 
     # Presencias originales: CSV con coordenadas UTM, especie, metodo
-    # 2026-04-17: base definitiva enviada por Elena (columna 'especie_definitiva')
+    # Se espera una columna 'especie_definitiva' con la asignacion final.
     presencias_raw = "data/raw/presencias/_final_coords_UTM_editada_20260416_v2_MODELOS.xlsx",
 
     # Directorio de variables ambientales (resoluciones 10x10)
@@ -111,9 +111,9 @@ CONFIG <- list(
   ),
 
   # --- RUTAS DE SALIDA ---
-  # Directorios donde se guardan resultados de modelos, mapas, logs y chequeos
-  # 2026-04-17: carpeta nueva a nivel raiz (hermana de output_total_v2/) para la
-  # corrida con la base definitiva de Elena.
+  # Directorios donde se guardan resultados de modelos, mapas, logs y chequeos.
+  # El nombre de carpeta incluye la fecha del run para trazabilidad; adaptar
+  # segun convenga en corridas posteriores.
   output = list(
     base = "output_version_final_20260417/modelos",     # Modelos con todos los datos
     seleccion = "output_version_final_20260417/seleccion_variables",  # JSONs y diagnosticos de seleccion

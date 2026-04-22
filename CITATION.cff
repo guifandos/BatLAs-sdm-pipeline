@@ -7,8 +7,8 @@ abstract: >-
   and Balearic Islands at UTM 10x10 km resolution. Combines environmental
   GLMs, spatial GAMs, fuzzy intersection, and multi-source uncertainty,
   with variable selection guided by a two-axis ecological guild system.
-version: 2.0.0
-date-released: 2026-03-16
+version: 2.1.0
+date-released: 2026-04-22
 authors:
   - family-names: Fandos
     given-names: Guillermo

@@ -115,7 +115,7 @@ crear_mapa_presencias_simple <- function(datos_sf, titulo,
 }
 
 # ------------------------------------------------------------------------------
-# Pie de figura (borrador para validacion por Elena)
+# Pie de figura (editar aqui para ajustar el texto en todas las laminas)
 # ------------------------------------------------------------------------------
 
 PIE_FIGURA <- paste0(

@@ -13,7 +13,7 @@
 # SALIDA: output_png_final/_comparacion_interseccion_pmin/
 #   - mapas PNG por especie (geometrica vs pmin, lado a lado)
 #   - resumen_comparacion.csv
-#   - README.md (explicacion dirigida a Elena)
+#   - README.md (explicacion del diagnostico)
 #
 # AUTOR: Guillermo Fandos (gfandos@ucm.es)
 # ==============================================================================
