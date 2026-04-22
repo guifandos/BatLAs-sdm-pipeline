@@ -47,9 +47,17 @@ data/modelado_ready_2014/
 # ==============================================================================
 output/
 output_2014/
+output_total_v2/
+output_2014_v2/
 output_residuos/
 output_residuos_2014/
 output_mapas_estilo_momat/
+output_maquetacion/
+output_version_final_20260417/
+output_version_final_pmin_20260420/
+output_png_final/
+output_png_final_pmin/
+output_shiny_residuos_BACKUP_20260410/
 
 # ==============================================================================
 # INTERMEDIATE RESULTS
@@ -67,6 +75,15 @@ resultados/
 # ==============================================================================
 AUDIT_PRE_WORKFLOW.md
 data/metadata/FEEDBACK_*.xlsx
+capitulo_atlas/
+correo_SECEMU.md
+correo_elena_favorabilidad_baleares.md
+PROMPT_REEJECUTAR_PIPELINE_V2.md
+REPORT_UPDATE_BatLAs.md
+Rplots.pdf
+mapas_atlas_murcielagos.zip
+*.zip
+data/shapefiles/
 
 # ==============================================================================
 # RENV (only renv.lock and renv/settings.json are versioned)

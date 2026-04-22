@@ -34,7 +34,7 @@ of the Spanish Ministry for the Ecological Transition (MITECO), coordinated by
        │     (03b)                         (selected by AICc,
        │                                    bootstrap × 200 iterations)
        ▼
-  Phase 4 ── Fuzzy intersection ────────── F_final = √(F_env × F_spa)
+  Phase 4 ── Fuzzy intersection ────────── F_final = min(F_env, F_spa)   (Zadeh's t-norm)
        │     (03c)
        ▼
   Phase 5 ── Spatial cross-validation ──── k-fold spatial CV
@@ -98,11 +98,15 @@ This model is also bootstrapped independently.
 
 ### Fuzzy intersection
 
-Environmental and spatial favorability are combined through a **geometric
-fuzzy intersection** (Acevedo & Real 2012): F_final = √(F_env × F_spa).
-This conservative operator ensures that a cell must be favorable in *both*
-dimensions to receive a high final score, penalizing cells where only one
-component is high.
+Environmental and spatial favorability are combined through the **minimum
+fuzzy intersection** (Zadeh 1965): F_final = min(F_env, F_spa). The minimum
+operator is the canonical t-norm for fuzzy intersection: a cell reaches high
+final favorability only when both components, environmental and spatial,
+support it. This replaces the geometric mean used in earlier versions, which
+softened disagreements between layers and produced spurious residual
+favorabilities in regions without spatial support (e.g. Balearic Islands for
+mainland species). Bootstrap propagation keeps the same structure:
+F_final[b] = min(F_env[b], F_spa[b]) for each of the 200 iterations.
 
 ### Composite uncertainty index
 
@@ -127,6 +131,17 @@ The final atlas maps use a 3x3 bivariate color scheme crossing favorability
 (low / medium / high) with uncertainty (low / medium / high). This allows
 readers to immediately identify cells with reliable high favorability versus
 cells where predictions should be interpreted with caution.
+
+### Editorial species layout (MOMAT-style)
+
+Each species is presented as a single editorial plate combining four panels:
+final integrated favorability as the main map, an inset showing the composite
+uncertainty index, the bivariate F × U map, and a presence/absence map. In
+the bivariate panel each axis is split into terciles labelled A (High),
+M (Medium) and B (Low). The script
+`R/04_visualization/04g_mapa_G_especies.R` produces two variants per
+species: one with an explanatory caption and a caption-free version for
+publication (clean MOMAT style).
 
 ### Spatial cross-validation
 
@@ -267,8 +282,13 @@ source("tests/test_pipeline.R")
 
 ## Geographic scope
 
-Iberian Peninsula and Balearic Islands. The Canary Islands are excluded due to
-their distinct biogeographic characteristics and different species composition.
+Iberian Peninsula and Balearic Islands. The Canary Islands are excluded
+because they constitute a distinct biogeographic region of volcanic origin
+belonging to Macaronesia, with a mammal fauna that includes local endemics
+and elements of African affinity whose evolutionary and ecological history
+is not comparable with the Iberian-Balearic one; a model calibrated on
+mainland environmental variables would not be transferable to an oceanic
+archipelago.
 
 ---
 

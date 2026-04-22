@@ -28,7 +28,8 @@ CONFIG <- list(
     # variables ambientales (Excel SEO) y geologia (CSVs).
 
     # Presencias originales: CSV con coordenadas UTM, especie, metodo
-    presencias_raw = "data/raw/presencias/_final_coords_UTM_editada_20260219_v2_modelos.xlsx",
+    # 2026-04-17: base definitiva enviada por Elena (columna 'especie_definitiva')
+    presencias_raw = "data/raw/presencias/_final_coords_UTM_editada_20260416_v2_MODELOS.xlsx",
 
     # Directorio de variables ambientales (resoluciones 10x10)
     variables_dir = "data/raw/variables",
@@ -46,6 +47,11 @@ CONFIG <- list(
     variables_excel_cana = "data/raw/variables/Variables_CANA.xlsx",
     # Diccionario de codigos de variables (nombres cortos -> descriptivos)
     codigos_variables = "data/raw/variables/Codigos_variables.xlsx",
+
+    # Datos suplementarios de presencias (archivos adicionales por especie)
+    # 2026-04-17: vaciado para la corrida con la base definitiva. V. murinus queda
+    # fuera del pipeline principal (tratamiento exploratorio aparte).
+    presencias_suplementarias = NULL,
 
     # Variables geologicas: Karst (proporciones) y litologia (colores/tipos)
     karst_csv = "data/raw/variables/10x10_Karst_PIBAL.csv",
@@ -101,17 +107,19 @@ CONFIG <- list(
 
     # --- VARIABLES SELECCIONADAS (JSONs por especie) ---
     # Un JSON por especie con: variables finales, eliminadas, metricas, alertas
-    variables_json = "output/seleccion_variables/variables_json"
+    variables_json = "output_version_final_20260417/seleccion_variables/variables_json"
   ),
 
   # --- RUTAS DE SALIDA ---
   # Directorios donde se guardan resultados de modelos, mapas, logs y chequeos
+  # 2026-04-17: carpeta nueva a nivel raiz (hermana de output_total_v2/) para la
+  # corrida con la base definitiva de Elena.
   output = list(
-    base = "output/modelos",           # Modelos y predicciones por especie
-    seleccion = "output/seleccion_variables",  # JSONs y diagnosticos de seleccion
-    logs = "output/logs",              # Logs de ejecucion
-    checks = "output/checks",         # Chequeos de calidad (QA)
-    figs = "output/figs"              # Figuras y mapas finales
+    base = "output_version_final_20260417/modelos",     # Modelos con todos los datos
+    seleccion = "output_version_final_20260417/seleccion_variables",  # JSONs y diagnosticos de seleccion
+    logs = "output_version_final_20260417/logs",     # Logs de ejecucion
+    checks = "output_version_final_20260417/checks", # Chequeos de calidad (QA)
+    figs = "output_version_final_20260417/figs"      # Figuras y mapas finales
   ),
 
   # ============================================================================
@@ -138,9 +146,17 @@ CONFIG <- list(
     metodos = c("glm2", "glm3", "gam"),  # Metodos a comparar
     k_gam = 30,             # Grados de libertad maximos para smooth terms en GAM
     k_gam_adaptativo = TRUE, # TRUE: k = min(k_gam, floor(n_pres/4)); FALSE: k fijo
-    usar_residuos = FALSE,  # TRUE: modelar residuos del GLM ambiental (evita doble conteo
-                            #   ambiental en fuzzy); FALSE: modelar PA directa.
-                            #   Ver 03b_bis_espacial_residuos.R para justificacion cientifica.
+    usar_residuos = FALSE,  # [EXPERIMENTAL — NO USAR EN PRODUCCION]
+                            # TRUE activa 03b_bis_espacial_residuos.R, que reconstruye
+                            # F_espacial como favorabilidad(p_amb + residuo_esp). En zonas
+                            # sin presencias el residuo tiende a 0, por lo que F_esp_res
+                            # colapsa a F_amb y la interseccion geometrica sqrt(F_amb*F_esp)
+                            # degenera en F_amb, perdiendo por completo la funcion de
+                            # mascara geografica. Esto produce favorabilidades altas
+                            # espurias en el norte peninsular para especies termofilas
+                            # (caso detectado 2026-04-10 con C. isabellinus, R. mehelyi, etc.).
+                            # Mantener SIEMPRE en FALSE mientras se use interseccion fuzzy
+                            # geometrica en 03c_interseccion_fuzzy.R.
     n_bootstrap = 200,      # Iteraciones de bootstrap (produccion: 200; pruebas: 50)
     seed = 123
   ),
@@ -205,7 +221,7 @@ CONFIG <- list(
     max_vars_abs = 25,            # Tope absoluto de variables independiente de N (parsimonia)
     k_folds_validation = 5,       # Folds para validacion predictiva (fase 7)
     run_validation = TRUE,        # Ejecutar fase 7 (puede desactivarse para rapidez)
-    stability_selection = TRUE,   # Ejecutar bootstrap de estabilidad para select07
+    stability_selection = FALSE,  # Desactivado temporalmente para rapidez
     n_boot_stability = 100        # Iteraciones de stability selection (produccion: 100)
   ),
 
@@ -242,16 +258,18 @@ CONFIG <- list(
   # Si anio_min no es NULL, solo se usan presencias con año >= anio_min.
   # Util para analisis de sensibilidad temporal o para excluir datos historicos.
   datos = list(
-    anio_min = NULL           # NULL = sin filtro; e.g. 2014 para datos desde 2014
+    anio_min = NULL            # Sin filtro temporal (todos los datos)
   ),
 
   # Control de ejecucion: activa/desactiva fases individuales.
   # force_rerun = TRUE recalcula especies ya procesadas.
+  # 2026-04-17: corrida completa con base definitiva. PAxENV ya regenerado y
+  # validado (29 especies modelables coinciden con expectativa).
   control = list(
-    force_rerun = FALSE,    # TRUE para recalcular especies ya procesadas
+    force_rerun = TRUE,    # TRUE: datos cambiaron, re-procesar todo
     ejecutar = list(
-      preparacion_datos = FALSE,     # Fase 0: preparacion de datos brutos
-      seleccion_variables = TRUE,    # Fase 1: seleccion de variables (7 fases)
+      preparacion_datos = FALSE,     # Fase 0: ya ejecutada en paso previo
+      seleccion_variables = TRUE,    # Fase 1: seleccion de variables
       modelo_ambiental = TRUE,       # Fase 2: GLM + favorabilidad ambiental
       modelo_espacial = TRUE,        # Fase 3: GAM/GLM espacial
       interseccion = TRUE,           # Fase 4: interseccion fuzzy
